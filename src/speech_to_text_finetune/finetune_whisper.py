@@ -15,12 +15,12 @@ from typing import Dict, Tuple
 import evaluate
 from evaluate import EvaluationModule
 from loguru import logger
-from data import (
+from src.speech_to_text_finetune.data import (
     load_common_voice,
     prepare_dataset_for_whisper,
     DataCollatorSpeechSeq2SeqWithPadding,
 )
-from hf_utils import (
+from src.speech_to_text_finetune.hf_utils import (
     get_hf_username,
     upload_custom_hf_model_card,
     get_available_languages_in_cv,
