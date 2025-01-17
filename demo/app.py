@@ -8,18 +8,23 @@ languages = get_available_languages_in_cv("mozilla-foundation/common_voice_17_0"
 model_ids = [
     "kostissz/whisper-tiny-gl",
     "kostissz/whisper-tiny-el",
-    "openai/whisper-small",
     "openai/whisper-tiny",
+    "openai/whisper-small",
+    "openai/whisper-medium",
 ]
 
 
 def load_model(model_id: str, language: str) -> Tuple[Pipeline, str]:
-    pipe = pipeline(
-        "automatic-speech-recognition",
-        model=model_id,
-        generate_kwargs={"language": language},
-    )
-    return pipe, f"Model {model_id} has been loaded."
+    if model_id and language:
+        yield None, f"Loading {model_id}..."
+        pipe = pipeline(
+            "automatic-speech-recognition",
+            model=model_id,
+            generate_kwargs={"language": language},
+        )
+        yield pipe, f"Model {model_id} has been loaded."
+    else:
+        yield None, "Please select a model and a language from the dropdown"
 
 
 def transcribe(pipe: Pipeline, audio: gr.Audio) -> str:
@@ -33,11 +38,6 @@ def setup_gradio_demo():
         dropdown_model = gr.Dropdown(
             choices=model_ids, value=None, label="Select a model"
         )
-        gr.Markdown("Or")
-        user_input_model = gr.Textbox(
-            label="Input a HF model id of a finetuned whisper model, e.g. openai/whisper-large-v3"
-        )
-        gr.Markdown("Next")
         selected_lang = gr.Dropdown(
             choices=languages, value=None, label="Select a language"
         )
@@ -53,10 +53,9 @@ def setup_gradio_demo():
 
         ### Event listeners ###
         model = gr.State()
-        selected_model = user_input_model if user_input_model else dropdown_model
         load_model_button.click(
             fn=load_model,
-            inputs=[selected_model, selected_lang],
+            inputs=[dropdown_model, selected_lang],
             outputs=[model, model_loaded],
         )
 
