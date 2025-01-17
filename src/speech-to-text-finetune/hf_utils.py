@@ -7,7 +7,6 @@ from typing import Dict
 from huggingface_hub import ModelCard, HfApi, ModelCardData, hf_hub_download
 
 
-
 def get_hf_username() -> str:
     return HfApi().whoami()["name"]
 
