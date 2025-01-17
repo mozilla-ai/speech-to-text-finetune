@@ -179,6 +179,28 @@ def run_finetuning(
 def compute_word_error_rate(
     pred: EvalPrediction, tokenizer: WhisperTokenizer, metric: EvaluationModule
 ) -> Dict:
+    """
+    Word Error Rate (wer) is a metric that measures the ratio of errors the ASR model makes given a transcript to the
+    total words spoken. Lower is better.
+    To identify an "error" we measure the difference between the ASR generated transcript and the
+    ground truth transcript using the following formula:
+    - S is the number of substitutions (number of words ASR swapped for different words from the ground truth)
+    - D is the number of deletions (number of words ASR skipped / didn't generate compared to the ground truth)
+    - I is the number of insertions (number of additional words ASR generated, not found in the ground truth)
+    - C is the number of correct words (number of words that are identical between ASR and ground truth scripts)
+
+    then: WER = (S+D+I) / (S+D+C)
+
+    Note 1: WER can be larger than 1.0, if the number of insertions I is larger than the number of correct words C.
+    Note 2: WER doesn't tell the whole story and is not fully representative of the quality of the ASR model.
+
+    Args:
+        pred (EvalPrediction): Transformers object that holds predicted tokens and ground truth labels
+        tokenizer (WhisperTokenizer): Whisper tokenizer used to decode tokens to strings
+        metric (EvaluationModule): module that calls the computing function for WER
+    Returns:
+        wer (Dict): computed WER metric
+    """
     pred_ids = pred.predictions
     label_ids = pred.label_ids
 
