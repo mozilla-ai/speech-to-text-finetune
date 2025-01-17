@@ -38,7 +38,12 @@ make_repo_private = False
 
 
 def run_finetuning(
-    model_id: str, dataset_id: str, language: str, repo_name: str | None, max_steps: int = 2000, private_hf_repo: bool = True
+    model_id: str,
+    dataset_id: str,
+    language: str,
+    repo_name: str | None,
+    max_steps: int = 2000,
+    private_hf_repo: bool = True,
 ) -> Tuple[Dict, Dict]:
     """
     Complete pipeline for preprocessing the Common Voice dataset and then finetuning a Whisper model on it.
@@ -225,5 +230,5 @@ if __name__ == "__main__":
         language=test_language,
         repo_name=test_repo_name,
         max_steps=test_max_steps,
-        private_hf_repo=make_repo_private
+        private_hf_repo=make_repo_private,
     )
