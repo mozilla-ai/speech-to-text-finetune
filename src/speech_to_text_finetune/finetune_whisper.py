@@ -15,7 +15,7 @@ from typing import Dict, Tuple
 import evaluate
 from evaluate import EvaluationModule
 from loguru import logger
-from data import (
+from data_process import (
     load_common_voice,
     prepare_dataset_for_whisper,
     DataCollatorSpeechSeq2SeqWithPadding,
