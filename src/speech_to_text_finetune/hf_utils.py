@@ -10,6 +10,9 @@ from huggingface_hub import ModelCard, HfApi, ModelCardData, hf_hub_download
 def get_hf_username() -> str:
     return HfApi().whoami()["name"]
 
+def validate_hf_model_id(hf_model_id: str) -> bool:
+    # TODO: check if hf_model_id is actual model id in HF
+    return True
 
 def get_available_languages_in_cv(dataset_id: str) -> Dict:
     """
