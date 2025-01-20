@@ -51,7 +51,7 @@ def transcribe(pipe: Pipeline, audio: gr.Audio) -> str:
 def setup_gradio_demo():
     with gr.Blocks() as demo:
         ### Register your model ###
-        model_to_register = gr.TextBox(label="Add a HuggingFace model ID to your local registry.")
+        model_to_register = gr.Textbox(label="Add a HuggingFace model ID to your local registry.")
         add_model_button = gr.Button("Add model")
         model_registered = gr.Markdown()
 
