@@ -12,6 +12,15 @@ from datasets import load_dataset, DatasetDict
 
 
 def load_common_voice(dataset_id: str, language_id: str) -> DatasetDict:
+    """
+    Load the default train+validation split used for finetuning and a test split used for evaluation.
+    Args:
+        dataset_id: official Common Voice dataset id from the mozilla-foundation organisation from Hugging Face
+        language_id: a registered language identifier from Common Voice (most often in ISO-639 format)
+
+    Returns:
+        DatasetDict: Hugging Face dictionary that consists of two distinct datasets
+    """
     common_voice = DatasetDict()
 
     common_voice["train"] = load_dataset(
@@ -39,6 +48,11 @@ def load_common_voice(dataset_id: str, language_id: str) -> DatasetDict:
 def prepare_dataset_for_whisper(
     batch: Dict, feature_extractor: WhisperFeatureExtractor, tokenizer: WhisperTokenizer
 ) -> Dict:
+    """
+    Use Whisper's feature extractor to transform the input audio arrays into log-Mel spectrograms
+     and the tokenizer to transform the text-label into tokens. This function is expected to be called using
+     the .map method in order to process the data batch by batch.
+    """
     audio = batch["audio"]
 
     # compute log-Mel input features from input audio array
@@ -53,6 +67,10 @@ def prepare_dataset_for_whisper(
 
 @dataclass
 class DataCollatorSpeechSeq2SeqWithPadding:
+    """
+    Data Collator class in the format expected by Seq2SeqTrainer used for processing
+    input data and labels in batches while finetuning. More info here:
+    """
     processor: WhisperProcessor
     decoder_start_token_id: int
 
