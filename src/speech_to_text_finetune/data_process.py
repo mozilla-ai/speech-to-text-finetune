@@ -8,7 +8,7 @@ from transformers import (
     WhisperProcessor,
 )
 
-from datasets import load_dataset, DatasetDict
+from datasets import load_dataset, DatasetDict, Audio
 
 
 def load_common_voice(dataset_id: str, language_id: str) -> DatasetDict:
@@ -28,7 +28,13 @@ def load_common_voice(dataset_id: str, language_id: str) -> DatasetDict:
     )
     common_voice["test"] = load_dataset(dataset_id, language_id, split="test")
 
-    common_voice = common_voice.remove_columns(
+    return common_voice
+
+def process_dataset(dataset: DatasetDict, feature_extractor: WhisperFeatureExtractor, tokenizer: WhisperTokenizer) -> DatasetDict:
+    """
+    Process dataset to the expected format by a Whisper model. More info here:
+    """
+    dataset = dataset.remove_columns(
         [
             "accent",
             "age",
@@ -42,10 +48,18 @@ def load_common_voice(dataset_id: str, language_id: str) -> DatasetDict:
         ]
     )
 
-    return common_voice
+    # Create a new column that consists of the resampled audio samples in the right sample rate for whisper
+    dataset = dataset.cast_column("audio", Audio(sampling_rate=16000))
 
+    dataset = dataset.map(
+        _process_inputs_and_labels_for_whisper,
+        fn_kwargs={"feature_extractor": feature_extractor, "tokenizer": tokenizer},
+        remove_columns=dataset.column_names["train"],
+        num_proc=2,
+    )
+    return dataset
 
-def prepare_dataset_for_whisper(
+def _process_inputs_and_labels_for_whisper(
     batch: Dict, feature_extractor: WhisperFeatureExtractor, tokenizer: WhisperTokenizer
 ) -> Dict:
     """
@@ -55,12 +69,10 @@ def prepare_dataset_for_whisper(
     """
     audio = batch["audio"]
 
-    # compute log-Mel input features from input audio array
     batch["input_features"] = feature_extractor(
         audio["array"], sampling_rate=audio["sampling_rate"]
     ).input_features[0]
 
-    # tokenize the transcribed text to label ids
     batch["labels"] = tokenizer(batch["sentence"]).input_ids
     return batch
 
