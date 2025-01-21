@@ -30,7 +30,12 @@ def load_common_voice(dataset_id: str, language_id: str) -> DatasetDict:
 
     return common_voice
 
-def process_dataset(dataset: DatasetDict, feature_extractor: WhisperFeatureExtractor, tokenizer: WhisperTokenizer) -> DatasetDict:
+
+def process_dataset(
+    dataset: DatasetDict,
+    feature_extractor: WhisperFeatureExtractor,
+    tokenizer: WhisperTokenizer,
+) -> DatasetDict:
     """
     Process dataset to the expected format by a Whisper model. More info here:
     """
@@ -59,6 +64,7 @@ def process_dataset(dataset: DatasetDict, feature_extractor: WhisperFeatureExtra
     )
     return dataset
 
+
 def _process_inputs_and_labels_for_whisper(
     batch: Dict, feature_extractor: WhisperFeatureExtractor, tokenizer: WhisperTokenizer
 ) -> Dict:
@@ -83,6 +89,7 @@ class DataCollatorSpeechSeq2SeqWithPadding:
     Data Collator class in the format expected by Seq2SeqTrainer used for processing
     input data and labels in batches while finetuning. More info here:
     """
+
     processor: WhisperProcessor
     decoder_start_token_id: int
 

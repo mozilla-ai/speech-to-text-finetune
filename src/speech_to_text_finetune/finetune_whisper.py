@@ -16,7 +16,7 @@ from evaluate import EvaluationModule
 from loguru import logger
 from src.speech_to_text_finetune.data_process import (
     load_common_voice,
-    DataCollatorSpeechSeq2SeqWithPadding, 
+    DataCollatorSpeechSeq2SeqWithPadding,
     process_dataset,
 )
 from src.speech_to_text_finetune.hf_utils import (
