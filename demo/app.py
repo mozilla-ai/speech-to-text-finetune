@@ -22,7 +22,7 @@ def add_model_to_local_registry(model_id: str) -> str:
             model_ids.append(model_id)
             json.dump(model_ids, json_file, indent=4)
         return f"Model {model_id} added to local registry"
-    return (f"Model {model_id} not found in Hugging Face. Check if you are logged "
+    return (f"Model {model_id} not found on Hugging Face. If you are certain the model exists, check if you are logged "
             f"in locally on Hugging Face or if you have the right permissions.")
 
 def remove_model_from_local_registry(model_id: str) -> str:

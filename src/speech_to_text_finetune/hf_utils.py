@@ -4,15 +4,14 @@ from loguru import logger
 import importlib.util
 from pathlib import Path
 from typing import Dict
-from huggingface_hub import ModelCard, HfApi, ModelCardData, hf_hub_download
+from huggingface_hub import ModelCard, HfApi, ModelCardData, hf_hub_download, repo_exists
 
 
 def get_hf_username() -> str:
     return HfApi().whoami()["name"]
 
 def validate_hf_model_id(hf_model_id: str) -> bool:
-    # TODO: check if hf_model_id is actual model id in HF
-    return True
+    return repo_exists(hf_model_id, repo_type="model")
 
 def get_available_languages_in_cv(dataset_id: str) -> Dict:
     """
