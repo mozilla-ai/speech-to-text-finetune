@@ -1,3 +1,8 @@
+[![](https://dcbadge.limes.pink/api/server/YuMNeuKStr?style=flat)](https://discord.gg/YuMNeuKStr)
+[![Docs](https://github.com/mozilla-ai/speech-to-text-finetune/actions/workflows/docs.yaml/badge.svg)](https://github.com/mozilla-ai/speech-to-text-finetune/actions/workflows/docs.yaml/)
+[![Tests](https://github.com/mozilla-ai/speech-to-text-finetune/actions/workflows/tests.yaml/badge.svg)](https://github.com/mozilla-ai/speech-to-text-finetune/actions/workflows/tests.yaml/)
+[![Ruff](https://github.com/mozilla-ai/speech-to-text-finetune/actions/workflows/lint.yaml/badge.svg?label=Ruff)](https://github.com/mozilla-ai/speech-to-text-finetune/actions/workflows/lint.yaml/)
+
 <p align="center"><img src="./images/Blueprints-logo.png" width="35%" alt="Project logo"/></p>
 
 This blueprint guides you to ...
@@ -6,28 +11,13 @@ This blueprint guides you to ...
 
 ### Built with
 - Python 3.10+
-- Open-Source Tool 1
-- Open-Source Tool 2
-- ...
+- [Common Voice](https://commonvoice.mozilla.org)
+- [Hugging Face](https://huggingface.co/)
+- [Gradio](https://www.gradio.app/)
 
 ## Quick-start
 
-1. Select the language you want to finetune on
-2. Common Voice is using this https://en.wikipedia.org/wiki/List_of_ISO_639_language_codes to map languages to unique identifiers. Find your language and the correct language identifier (Set 1) and use it as input.
 
-## How it Works
-
-
-## Pre-requisites
-
-- **System requirements**:
-  - OS: Windows, macOS, or Linux
-  - Python 3.10 or higher
-  - Minimum RAM:
-  - Disk space:
-
-- **Dependencies**:
-  - Dependencies listed in `pyproject.toml`
 
 
 ## Troubleshooting

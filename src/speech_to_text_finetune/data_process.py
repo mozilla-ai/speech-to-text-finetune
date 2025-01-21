@@ -8,10 +8,19 @@ from transformers import (
     WhisperProcessor,
 )
 
-from datasets import load_dataset, DatasetDict
+from datasets import load_dataset, DatasetDict, Audio
 
 
 def load_common_voice(dataset_id: str, language_id: str) -> DatasetDict:
+    """
+    Load the default train+validation split used for finetuning and a test split used for evaluation.
+    Args:
+        dataset_id: official Common Voice dataset id from the mozilla-foundation organisation from Hugging Face
+        language_id: a registered language identifier from Common Voice (most often in ISO-639 format)
+
+    Returns:
+        DatasetDict: Hugging Face dictionary that consists of two distinct datasets
+    """
     common_voice = DatasetDict()
 
     common_voice["train"] = load_dataset(
@@ -19,7 +28,13 @@ def load_common_voice(dataset_id: str, language_id: str) -> DatasetDict:
     )
     common_voice["test"] = load_dataset(dataset_id, language_id, split="test")
 
-    common_voice = common_voice.remove_columns(
+    return common_voice
+
+def process_dataset(dataset: DatasetDict, feature_extractor: WhisperFeatureExtractor, tokenizer: WhisperTokenizer) -> DatasetDict:
+    """
+    Process dataset to the expected format by a Whisper model. More info here:
+    """
+    dataset = dataset.remove_columns(
         [
             "accent",
             "age",
@@ -33,26 +48,41 @@ def load_common_voice(dataset_id: str, language_id: str) -> DatasetDict:
         ]
     )
 
-    return common_voice
+    # Create a new column that consists of the resampled audio samples in the right sample rate for whisper
+    dataset = dataset.cast_column("audio", Audio(sampling_rate=16000))
 
+    dataset = dataset.map(
+        _process_inputs_and_labels_for_whisper,
+        fn_kwargs={"feature_extractor": feature_extractor, "tokenizer": tokenizer},
+        remove_columns=dataset.column_names["train"],
+        num_proc=2,
+    )
+    return dataset
 
-def prepare_dataset_for_whisper(
+def _process_inputs_and_labels_for_whisper(
     batch: Dict, feature_extractor: WhisperFeatureExtractor, tokenizer: WhisperTokenizer
 ) -> Dict:
+    """
+    Use Whisper's feature extractor to transform the input audio arrays into log-Mel spectrograms
+     and the tokenizer to transform the text-label into tokens. This function is expected to be called using
+     the .map method in order to process the data batch by batch.
+    """
     audio = batch["audio"]
 
-    # compute log-Mel input features from input audio array
     batch["input_features"] = feature_extractor(
         audio["array"], sampling_rate=audio["sampling_rate"]
     ).input_features[0]
 
-    # tokenize the transcribed text to label ids
     batch["labels"] = tokenizer(batch["sentence"]).input_ids
     return batch
 
 
 @dataclass
 class DataCollatorSpeechSeq2SeqWithPadding:
+    """
+    Data Collator class in the format expected by Seq2SeqTrainer used for processing
+    input data and labels in batches while finetuning. More info here:
+    """
     processor: WhisperProcessor
     decoder_start_token_id: int
 

@@ -71,6 +71,11 @@ def upload_custom_hf_model_card(
     baseline_eval_results: Dict,
     ft_eval_results: Dict,
 ) -> None:
+    """
+    Create and upload a custom Model Card (<TODO: hf reference here>) to the Hugging Face repo of the finetuned model
+    that highlights the evaluation results before and after finetuning.
+    """
+
     card_metadata = ModelCardData(
         base_model=model_id,
         datasets=[dataset_id],

@@ -10,15 +10,14 @@ from transformers import (
     EvalPrediction,
 )
 import torch
-from datasets import Audio
 from typing import Dict, Tuple
 import evaluate
 from evaluate import EvaluationModule
 from loguru import logger
-from src.speech_to_text_finetune.data import (
+from src.speech_to_text_finetune.data_process import (
     load_common_voice,
-    prepare_dataset_for_whisper,
-    DataCollatorSpeechSeq2SeqWithPadding,
+    DataCollatorSpeechSeq2SeqWithPadding, 
+    process_dataset,
 )
 from src.speech_to_text_finetune.hf_utils import (
     get_hf_username,
@@ -94,14 +93,7 @@ def run_finetuning(
     model.generation_config.forced_decoder_ids = None
 
     logger.info("Preparing dataset...")
-    # Create a new column that consists of the resampled audio samples in the right sample rate for whisper
-    dataset = dataset.cast_column("audio", Audio(sampling_rate=16000))
-    dataset = dataset.map(
-        prepare_dataset_for_whisper,
-        fn_kwargs={"feature_extractor": feature_extractor, "tokenizer": tokenizer},
-        remove_columns=dataset.column_names["train"],
-        num_proc=2,
-    )
+    dataset = process_dataset(dataset, feature_extractor, tokenizer)
 
     data_collator = DataCollatorSpeechSeq2SeqWithPadding(
         processor=processor,
