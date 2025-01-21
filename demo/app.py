@@ -4,9 +4,10 @@ import gradio as gr
 from transformers import pipeline, Pipeline
 from speech_to_text_finetune.hf_utils import validate_hf_model_id, get_available_languages_in_cv
 
+model_registry_file = "model_registry.json"
 
 def load_model_registry() -> List:
-    with open("model_registry.json") as json_file:
+    with open(model_registry_file) as json_file:
         model_registry = json.load(json_file)
     return list(model_registry)
 
@@ -18,7 +19,7 @@ def add_model_to_local_registry(model_id: str) -> str:
     if model_id in model_ids:
         return f"Model {model_id} already in local registry"
     if validate_hf_model_id(model_id):
-        with open("model_registry.json", "w") as json_file:
+        with open(model_registry_file, "w") as json_file:
             model_ids.append(model_id)
             json.dump(model_ids, json_file, indent=4)
         return f"Model {model_id} added to local registry"
