@@ -89,7 +89,7 @@ def run_finetuning(config_path: str = "config.yaml") -> Tuple[Dict, Dict]:
         output_dir=local_output_dir,
         hub_model_id=hf_repo_name,
         report_to=["tensorboard"],
-        **cfg.training_hp,
+        **cfg.training_hp.dict(),
     )
 
     metric = evaluate.load("wer")
