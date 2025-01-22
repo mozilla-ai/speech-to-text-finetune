@@ -15,7 +15,7 @@ class TrainingConfig(BaseModel):
     """
 
     push_to_hub: bool
-    private_hf_repo: bool
+    hub_private_repo: bool
     max_steps: int
     per_device_train_batch_size: int
     gradient_accumulation_steps: int
@@ -28,7 +28,6 @@ class TrainingConfig(BaseModel):
     predict_with_generate: bool
     generation_max_length: int
     save_steps: int
-    eval_steps: int
     logging_steps: int
     load_best_model_at_end: bool
     metric_for_best_model: str

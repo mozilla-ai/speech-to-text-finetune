@@ -53,7 +53,7 @@ def run_finetuning(config_path: str = "config.yaml") -> Tuple[Dict, Dict]:
     logger.info(
         f"Finetuning job will soon start. "
         f"Results will be saved local at {local_output_dir} uploaded in HF at {hf_repo_name}. "
-        f"Private repo is set to {cfg.training.private_hf_repo}."
+        f"Private repo is set to {cfg.training_hp.hub_private_repo}."
     )
 
     logger.info(f"Loading the {cfg.language} subset from the {cfg.dataset_id} dataset.")
