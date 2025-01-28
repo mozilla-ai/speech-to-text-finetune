@@ -11,9 +11,9 @@ This blueprint guides you to ...
 
 ### Built with
 - Python 3.10+
-- [Common Voice]()
-- [Hugging Face]()
-- [Gradio]()
+- [Common Voice](https://commonvoice.mozilla.org)
+- [Hugging Face](https://huggingface.co/)
+- [Gradio](https://www.gradio.app/)
 
 ## Quick-start
 
