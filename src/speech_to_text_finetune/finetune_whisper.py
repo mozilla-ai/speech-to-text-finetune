@@ -10,17 +10,16 @@ from transformers import (
     EvalPrediction,
 )
 import torch
-from datasets import Audio
 from typing import Dict, Tuple
 import evaluate
 from evaluate import EvaluationModule
 from loguru import logger
-from data import (
+from src.speech_to_text_finetune.data_process import (
     load_common_voice,
-    prepare_dataset_for_whisper,
     DataCollatorSpeechSeq2SeqWithPadding,
+    process_dataset,
 )
-from hf_utils import (
+from src.speech_to_text_finetune.hf_utils import (
     get_hf_username,
     upload_custom_hf_model_card,
     get_available_languages_in_cv,
@@ -32,12 +31,18 @@ model_id_whisper = "openai/whisper-tiny"
 test_language = "Greek"
 
 test_repo_name = "testing"  # None for default name, or set your own
+test_max_steps = 100
 push_to_hf = True
 make_repo_private = False
 
 
 def run_finetuning(
-    model_id: str, dataset_id: str, language: str, repo_name: str | None
+    model_id: str,
+    dataset_id: str,
+    language: str,
+    repo_name: str | None,
+    max_steps: int = 2000,
+    private_hf_repo: bool = True,
 ) -> Tuple[Dict, Dict]:
     """
     Complete pipeline for preprocessing the Common Voice dataset and then finetuning a Whisper model on it.
@@ -47,6 +52,8 @@ def run_finetuning(
         dataset_id (str): HF dataset id of a Common Voice dataset version, ideally from the mozilla-foundation repo
         language (str): registered language string that is supported by the Common Voice dataset
         repo_name (str): repo ID that will be used for storing artifacts both locally and on HF
+        max_steps (int): number of steps to run the training job, defaults to 2000
+        private_hf_repo (bool): flag whether to make the HF public (False) or private (True)
 
     Returns:
         Tuple[Dict, Dict]: evaluation metrics from the baseline and the finetuned models
@@ -63,7 +70,7 @@ def run_finetuning(
     logger.info(
         f"Finetuning job will soon start. "
         f"Results will be saved local at {local_output_dir} uploaded in HF at {hf_repo_name}. "
-        f"Private repo is set to {make_repo_private}."
+        f"Private repo is set to {private_hf_repo}."
     )
 
     logger.info(f"Loading the {language} subset from the {dataset_id} dataset.")
@@ -86,14 +93,7 @@ def run_finetuning(
     model.generation_config.forced_decoder_ids = None
 
     logger.info("Preparing dataset...")
-    # Create a new column that consists of the resampled audio samples in the right sample rate for whisper
-    dataset = dataset.cast_column("audio", Audio(sampling_rate=16000))
-    dataset = dataset.map(
-        prepare_dataset_for_whisper,
-        fn_kwargs={"feature_extractor": feature_extractor, "tokenizer": tokenizer},
-        remove_columns=dataset.column_names["train"],
-        num_proc=2,
-    )
+    dataset = process_dataset(dataset, feature_extractor, tokenizer)
 
     data_collator = DataCollatorSpeechSeq2SeqWithPadding(
         processor=processor,
@@ -106,7 +106,7 @@ def run_finetuning(
         gradient_accumulation_steps=1,
         learning_rate=1e-5,
         warmup_steps=50,
-        max_steps=1000,
+        max_steps=max_steps,
         gradient_checkpointing=True,
         fp16=True,
         eval_strategy="steps",
@@ -122,7 +122,7 @@ def run_finetuning(
         report_to=["tensorboard"],
         push_to_hub=push_to_hf,
         hub_model_id=hf_repo_name,
-        hub_private_repo=make_repo_private,
+        hub_private_repo=private_hf_repo,
     )
 
     metric = evaluate.load("wer")
@@ -221,4 +221,6 @@ if __name__ == "__main__":
         dataset_id=dataset_id_cv,
         language=test_language,
         repo_name=test_repo_name,
+        max_steps=test_max_steps,
+        private_hf_repo=make_repo_private,
     )
