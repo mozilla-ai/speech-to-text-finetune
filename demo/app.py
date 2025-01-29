@@ -2,33 +2,48 @@ import json
 from typing import Tuple, List
 import gradio as gr
 from transformers import pipeline, Pipeline
-from speech_to_text_finetune.hf_utils import validate_hf_model_id, get_available_languages_in_cv
+from speech_to_text_finetune.hf_utils import (
+    validate_hf_model_id,
+    get_available_languages_in_cv,
+)
 
 model_registry_file = "model_registry.json"
+
 
 def load_model_registry() -> List:
     with open(model_registry_file) as json_file:
         model_registry = json.load(json_file)
     return list(model_registry)
 
+
 model_ids = load_model_registry()
 languages = get_available_languages_in_cv("mozilla-foundation/common_voice_17_0").keys()
 
 
-def add_model_to_local_registry(model_id: str) -> str:
+def add_model(model_id: str) -> Tuple[gr.Dropdown, str]:
     if model_id in model_ids:
-        return f"Model {model_id} already in local registry"
-    if validate_hf_model_id(model_id):
-        with open(model_registry_file, "w") as json_file:
-            model_ids.append(model_id)
-            json.dump(model_ids, json_file, indent=4)
-        return f"Model {model_id} added to local registry"
-    return (f"Model {model_id} not found on Hugging Face. If you are certain the model exists, check if you are logged "
-            f"in locally on Hugging Face or if you have the right permissions.")
+        status_text = f"Model {model_id} already in local registry"
+    else:
+        if validate_hf_model_id(model_id):
+            with open(model_registry_file, "w") as json_file:
+                model_ids.append(model_id)
+                json.dump(model_ids, json_file, indent=4)
+            status_text = f"Model {model_id} added to local registry"
+        else:
+            status_text = (
+                f"Model {model_id} not found on Hugging Face. If you are certain the model exists, check "
+                f"if you are logged in locally on Hugging Face or if you have the right permissions."
+            )
+    return gr.Dropdown(choices=model_ids, interactive=True), status_text
 
-def remove_model_from_local_registry(model_id: str) -> str:
-    model_ids.remove(model_id)
-    return f"Model {model_id} removed from local registry"
+
+def remove_model(model_id: str) -> Tuple[gr.Dropdown, str]:
+    with open(model_registry_file, "w") as json_file:
+        model_ids.remove(model_id)
+        json.dump(model_ids, json_file, indent=4)
+    return gr.Dropdown(
+        choices=model_ids, interactive=True
+    ), f"Model {model_id} removed to local registry"
 
 
 def load_model(model_id: str, language: str) -> Tuple[Pipeline, str]:
@@ -52,7 +67,9 @@ def transcribe(pipe: Pipeline, audio: gr.Audio) -> str:
 def setup_gradio_demo():
     with gr.Blocks() as demo:
         ### Register your model ###
-        model_to_register = gr.Textbox(label="Add a HuggingFace model ID to your local registry.")
+        model_to_register = gr.Textbox(
+            label="Add a HuggingFace model ID to your local registry."
+        )
         add_model_button = gr.Button("Add model")
         model_registered = gr.Markdown()
 
@@ -63,10 +80,10 @@ def setup_gradio_demo():
         selected_lang = gr.Dropdown(
             choices=languages, value=None, label="Select a language"
         )
-        load_model_button = gr.Button("Load model")
         remove_model_button = gr.Button("Remove model from registry")
-        model_loaded = gr.Markdown()
         model_removed = gr.Markdown()
+        load_model_button = gr.Button("Load model")
+        model_loaded = gr.Markdown()
 
         ### Transcription ###
         audio_input = gr.Audio(
@@ -79,9 +96,9 @@ def setup_gradio_demo():
         model = gr.State()
 
         add_model_button.click(
-            fn=add_model_to_local_registry,
+            fn=add_model,
             inputs=[model_to_register],
-            outputs=[model_registered],
+            outputs=[dropdown_model, model_registered],
         )
 
         load_model_button.click(
@@ -91,9 +108,9 @@ def setup_gradio_demo():
         )
 
         remove_model_button.click(
-            fn=remove_model_from_local_registry,
+            fn=remove_model,
             inputs=[dropdown_model],
-            outputs=[model_removed],
+            outputs=[dropdown_model, model_removed],
         )
 
         transcribe_button.click(
