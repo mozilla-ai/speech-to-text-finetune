@@ -55,15 +55,15 @@ def load_local_dataset(dataset_dir: str, train_split: float = 0.8) -> DatasetDic
     Sentences and audio files should be indexed like this: <index>: <sentence> should be accompanied by rec_<index>.wav
 
     Args:
-        dataset_dir (str): path to the local dataset, expecting a text.tsv and .wav files under the directory
+        dataset_dir (str): path to the local dataset, expecting a text.csv and .wav files under the directory
         train_split (float): percentage split of the dataset to train+validation and test set
 
     Returns:
         DatasetDict: HF Dataset dictionary in the same exact format as the Common Voice dataset from load_common_voice
     """
-    text_file = dataset_dir + "/text.tsv"
+    text_file = dataset_dir + "/text.csv"
 
-    dataframe = pd.read_csv(text_file, sep="\t")
+    dataframe = pd.read_csv(text_file)
     audio_files = sorted(
         [f"{dataset_dir}/{f}" for f in os.listdir(dataset_dir) if f.endswith(".wav")]
     )

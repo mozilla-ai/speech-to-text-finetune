@@ -10,7 +10,7 @@ from speech_to_text_finetune.hf_utils import get_available_languages_in_cv
 
 parent_dir = "local_data"
 dataset_id_cv = "mozilla-foundation/common_voice_17_0"
-recorded_text_file = Path(f"{parent_dir}/text.tsv")
+recorded_text_file = Path(f"{parent_dir}/text.csv")
 
 languages_dict = get_available_languages_in_cv(dataset_id_cv)
 
