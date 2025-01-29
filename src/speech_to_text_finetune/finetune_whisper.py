@@ -126,7 +126,7 @@ def run_finetuning(config_path: str = "config.yaml") -> Tuple[Dict, Dict]:
     eval_results = trainer.evaluate()
     logger.info(f"Evaluation complete. Results:\n\t {eval_results}")
 
-    if cfg.training_hp.push_to_hf:
+    if cfg.training_hp.push_to_hub:
         logger.info(f"Uploading model and eval results to HuggingFace: {hf_repo_name}")
         trainer.push_to_hub()
         upload_custom_hf_model_card(
