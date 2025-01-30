@@ -43,7 +43,9 @@ def run_finetuning(config_path: str = "config.yaml") -> Tuple[Dict, Dict]:
 
     hf_username = get_hf_username()
 
-    with open("./languages_common_voice_17_0.json") as json_file:
+    with open(
+        "src/speech_to_text_finetune/languages_common_voice_17_0.json"
+    ) as json_file:
         languages_name_to_id = json.load(json_file)
     language_id = languages_name_to_id[cfg.language]
 
