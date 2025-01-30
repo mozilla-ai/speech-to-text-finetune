@@ -14,81 +14,66 @@ from typing import Dict, Tuple
 import evaluate
 from evaluate import EvaluationModule
 from loguru import logger
-from src.speech_to_text_finetune.data_process import (
+
+from speech_to_text_finetune.config import load_config
+from speech_to_text_finetune.data_process import (
     load_common_voice,
     DataCollatorSpeechSeq2SeqWithPadding,
     process_dataset,
 )
-from src.speech_to_text_finetune.hf_utils import (
+from speech_to_text_finetune.hf_utils import (
     get_hf_username,
     upload_custom_hf_model_card,
     get_available_languages_in_cv,
 )
 
-hf_username = get_hf_username()
-dataset_id_cv = "mozilla-foundation/common_voice_17_0"
-model_id_whisper = "openai/whisper-tiny"
-test_language = "Greek"
 
-test_repo_name = "testing"  # None for default name, or set your own
-test_max_steps = 100
-push_to_hf = True
-make_repo_private = False
-
-
-def run_finetuning(
-    model_id: str,
-    dataset_id: str,
-    language: str,
-    repo_name: str | None,
-    max_steps: int = 2000,
-    private_hf_repo: bool = True,
-) -> Tuple[Dict, Dict]:
+def run_finetuning(config_path: str = "config.yaml") -> Tuple[Dict, Dict]:
     """
     Complete pipeline for preprocessing the Common Voice dataset and then finetuning a Whisper model on it.
 
     Args:
-        model_id (str): HF model id of a Whisper model used for finetuning
-        dataset_id (str): HF dataset id of a Common Voice dataset version, ideally from the mozilla-foundation repo
-        language (str): registered language string that is supported by the Common Voice dataset
-        repo_name (str): repo ID that will be used for storing artifacts both locally and on HF
-        max_steps (int): number of steps to run the training job, defaults to 2000
-        private_hf_repo (bool): flag whether to make the HF public (False) or private (True)
+        config_path (str): The filepath to a yaml file that follows the format defined in config.py
 
     Returns:
         Tuple[Dict, Dict]: evaluation metrics from the baseline and the finetuned models
     """
+    cfg = load_config(config_path)
 
-    languages_name_to_id = get_available_languages_in_cv(dataset_id)
-    language_id = languages_name_to_id[language]
+    hf_username = get_hf_username()
 
-    if not repo_name:
-        repo_name = f"{model_id.split('/')[1]}-{language_id}"
-    hf_repo_name = f"{hf_username}/{repo_name}"
-    local_output_dir = f"./artifacts/{repo_name}"
+    languages_name_to_id = get_available_languages_in_cv(cfg.dataset_id)
+    language_id = languages_name_to_id[cfg.language]
+
+    if not cfg.repo_name:
+        cfg.repo_name = f"{cfg.model.model_id.split('/')[1]}-{language_id}"
+    hf_repo_name = f"{hf_username}/{cfg.repo_name}"
+    local_output_dir = f"./artifacts/{cfg.repo_name}"
 
     logger.info(
         f"Finetuning job will soon start. "
         f"Results will be saved local at {local_output_dir} uploaded in HF at {hf_repo_name}. "
-        f"Private repo is set to {private_hf_repo}."
+        f"Private repo is set to {cfg.training_hp.hub_private_repo}."
     )
 
-    logger.info(f"Loading the {language} subset from the {dataset_id} dataset.")
-    dataset = load_common_voice(dataset_id, language_id)
+    logger.info(f"Loading the {cfg.language} subset from the {cfg.dataset_id} dataset.")
+    dataset = load_common_voice(cfg.dataset_id, language_id)
 
     device = torch.cuda.get_device_name(0) if torch.cuda.is_available() else "CPU"
 
-    logger.info(f"Loading {model_id} on {device} and configuring it for {language}.")
-    feature_extractor = WhisperFeatureExtractor.from_pretrained(model_id)
+    logger.info(
+        f"Loading {cfg.model_id} on {device} and configuring it for {cfg.language}."
+    )
+    feature_extractor = WhisperFeatureExtractor.from_pretrained(cfg.model_id)
     tokenizer = WhisperTokenizer.from_pretrained(
-        model_id, language=language, task="transcribe"
+        cfg.model_id, language=cfg.language, task="transcribe"
     )
     processor = WhisperProcessor.from_pretrained(
-        model_id, language=language, task="transcribe"
+        cfg.model_id, language=cfg.language, task="transcribe"
     )
-    model = WhisperForConditionalGeneration.from_pretrained(model_id)
+    model = WhisperForConditionalGeneration.from_pretrained(cfg.model_id)
 
-    model.generation_config.language = language.lower()
+    model.generation_config.language = cfg.language.lower()
     model.generation_config.task = "transcribe"
     model.generation_config.forced_decoder_ids = None
 
@@ -102,27 +87,9 @@ def run_finetuning(
 
     training_args = Seq2SeqTrainingArguments(
         output_dir=local_output_dir,
-        per_device_train_batch_size=64,
-        gradient_accumulation_steps=1,
-        learning_rate=1e-5,
-        warmup_steps=50,
-        max_steps=max_steps,
-        gradient_checkpointing=True,
-        fp16=True,
-        eval_strategy="steps",
-        per_device_eval_batch_size=8,
-        predict_with_generate=True,
-        generation_max_length=225,
-        save_steps=250,
-        eval_steps=250,
-        logging_steps=25,
-        load_best_model_at_end=True,
-        metric_for_best_model="wer",
-        greater_is_better=False,
-        report_to=["tensorboard"],
-        push_to_hub=push_to_hf,
         hub_model_id=hf_repo_name,
-        hub_private_repo=private_hf_repo,
+        report_to=["tensorboard"],
+        **cfg.training_hp.dict(),
     )
 
     metric = evaluate.load("wer")
@@ -142,7 +109,7 @@ def run_finetuning(
     processor.save_pretrained(training_args.output_dir)
 
     logger.info(
-        f"Before finetuning, run evaluation on the baseline model {model_id} to easily compare performance"
+        f"Before finetuning, run evaluation on the baseline model {cfg.model_id} to easily compare performance"
         f" before and after finetuning"
     )
     baseline_eval_results = trainer.evaluate()
@@ -159,15 +126,15 @@ def run_finetuning(
     eval_results = trainer.evaluate()
     logger.info(f"Evaluation complete. Results:\n\t {eval_results}")
 
-    if push_to_hf:
+    if cfg.training_hp.push_to_hf:
         logger.info(f"Uploading model and eval results to HuggingFace: {hf_repo_name}")
         trainer.push_to_hub()
         upload_custom_hf_model_card(
             hf_repo_name=hf_repo_name,
-            model_id=model_id,
-            dataset_id=dataset_id,
+            model_id=cfg.model_id,
+            dataset_id=cfg.dataset_id,
             language_id=language_id,
-            language=language,
+            language=cfg.language,
             n_train_samples=dataset["train"].num_rows,
             n_eval_samples=dataset["test"].num_rows,
             baseline_eval_results=baseline_eval_results,
@@ -216,11 +183,4 @@ def compute_word_error_rate(
 
 
 if __name__ == "__main__":
-    run_finetuning(
-        model_id=model_id_whisper,
-        dataset_id=dataset_id_cv,
-        language=test_language,
-        repo_name=test_repo_name,
-        max_steps=test_max_steps,
-        private_hf_repo=make_repo_private,
-    )
+    run_finetuning(config_path="src/speech_to_text_finetune/config.yaml")
