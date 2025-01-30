@@ -1,9 +1,8 @@
 model_id: openai/whisper-tiny
-dataset_id: demo/local_data
+dataset_id: local_data
 dataset_source: local
 language: Greek
-repo_name: local_el
-num_proc: 2
+repo_name: default
 
 training_hp:
     push_to_hub: True

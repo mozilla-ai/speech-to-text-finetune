@@ -44,7 +44,6 @@ class Config(BaseModel):
         dataset_source (str): can be "HF" or "local", to determine from where to fetch the dataset
         language (str): registered language string that is supported by the Common Voice dataset
         repo_name (str): used both for local dir and HF, "default" will create a name based on the model and language id
-        num_proc (int | None): number of processes for multiprocessing when processing the dataset
         training_hp (TrainingConfig): store selective hyperparameter values from Seq2SeqTrainingArguments
     """
 
@@ -53,5 +52,4 @@ class Config(BaseModel):
     dataset_source: str
     language: str
     repo_name: str
-    num_proc: int | None
     training_hp: TrainingConfig

@@ -82,7 +82,6 @@ def process_dataset(
     dataset: DatasetDict,
     feature_extractor: WhisperFeatureExtractor,
     tokenizer: WhisperTokenizer,
-    num_proc: int | None,
 ) -> DatasetDict:
     """
     Process dataset to the expected format by a Whisper model. More info here:
@@ -94,7 +93,7 @@ def process_dataset(
         _process_inputs_and_labels_for_whisper,
         fn_kwargs={"feature_extractor": feature_extractor, "tokenizer": tokenizer},
         remove_columns=dataset.column_names["train"],
-        num_proc=num_proc,
+        num_proc=os.cpu_count(),
     )
     return dataset
 
