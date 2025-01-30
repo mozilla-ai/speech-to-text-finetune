@@ -54,11 +54,12 @@ def run_finetuning(config_path: str = "config.yaml") -> Tuple[Dict, Dict]:
     hf_repo_name = f"{hf_username}/{cfg.repo_name}"
     local_output_dir = f"./artifacts/{cfg.repo_name}"
 
-    logger.info(
-        f"Finetuning job will soon start. "
-        f"Results will be saved local at {local_output_dir} uploaded in HF at {hf_repo_name}. "
-        f"Private repo is set to {cfg.training_hp.hub_private_repo}."
-    )
+    logger.info(f"Finetuning starts soon, results saved locally at {local_output_dir}")
+    if cfg.training_hp.push_to_hub:
+        logger.info(
+            f"Results will also be uploaded in HF at {hf_repo_name}. "
+            f"Private repo is set to {cfg.training_hp.hub_private_repo}."
+        )
 
     logger.info(f"Loading the {cfg.language} subset from the {cfg.dataset_id} dataset.")
     if cfg.dataset_source == "HF":
