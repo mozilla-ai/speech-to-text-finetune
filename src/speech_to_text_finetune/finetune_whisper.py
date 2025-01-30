@@ -15,13 +15,13 @@ import evaluate
 from evaluate import EvaluationModule
 from loguru import logger
 
-from src.speech_to_text_finetune.config import load_config
-from src.speech_to_text_finetune.data_process import (
+from speech_to_text_finetune.config import load_config
+from speech_to_text_finetune.data_process import (
     load_common_voice,
     DataCollatorSpeechSeq2SeqWithPadding,
     process_dataset,
 )
-from src.speech_to_text_finetune.hf_utils import (
+from speech_to_text_finetune.hf_utils import (
     get_hf_username,
     upload_custom_hf_model_card,
     get_available_languages_in_cv,
@@ -183,4 +183,4 @@ def compute_word_error_rate(
 
 
 if __name__ == "__main__":
-    run_finetuning(config_path="config.yaml")
+    run_finetuning(config_path="src/speech_to_text_finetune/config.yaml")
