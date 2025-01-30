@@ -2,7 +2,6 @@ model_id: openai/whisper-tiny
 dataset_id: mozilla-foundation/common_voice_17_0
 language: Greek
 repo_name: None
-num_proc: 2
 
 training_hp:
     push_to_hub: False

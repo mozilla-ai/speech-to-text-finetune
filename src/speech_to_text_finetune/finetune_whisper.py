@@ -78,7 +78,7 @@ def run_finetuning(config_path: str = "config.yaml") -> Tuple[Dict, Dict]:
     model.generation_config.forced_decoder_ids = None
 
     logger.info("Preparing dataset...")
-    dataset = process_dataset(dataset, feature_extractor, tokenizer, cfg.num_proc)
+    dataset = process_dataset(dataset, feature_extractor, tokenizer)
 
     data_collator = DataCollatorSpeechSeq2SeqWithPadding(
         processor=processor,
