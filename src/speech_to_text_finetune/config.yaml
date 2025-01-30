@@ -1,0 +1,24 @@
+model_id: openai/whisper-tiny
+dataset_id: mozilla-foundation/common_voice_17_0
+language: Greek
+repo_name: None
+
+training_hp:
+    push_to_hub: False
+    hub_private_repo: True
+    max_steps: 1
+    per_device_train_batch_size: 64
+    gradient_accumulation_steps: 1
+    learning_rate: 1e-5
+    warmup_steps: 50
+    gradient_checkpointing: True
+    fp16: True
+    eval_strategy: steps
+    per_device_eval_batch_size: 8
+    predict_with_generate: True
+    generation_max_length: 225
+    save_steps: 250
+    logging_steps: 25
+    load_best_model_at_end: True
+    metric_for_best_model: wer
+    greater_is_better: False
