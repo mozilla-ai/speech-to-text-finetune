@@ -15,7 +15,7 @@ recorded_text_file = Path(f"{parent_dir}/text.csv")
 languages_dict = get_available_languages_in_cv(dataset_id_cv)
 
 
-def load_cv_sentences(language: str, index: int) -> str:
+def load_cv_sentences(language: str) -> str:
     language_id = languages_dict[language]
     source_text_file = Path(f"{parent_dir}/{language_id}_sentences.tsv")
 
