@@ -16,6 +16,16 @@ languages_dict = get_available_languages_in_cv(dataset_id_cv)
 
 
 def load_cv_sentences(language: str) -> str:
+    """
+    Loads all the validated text sentences from the Common Voice dataset of the language requested.
+    If the file doesn't exist locally, it will download it from HF.
+
+    Args:
+        language (str): Full name of the language to download the text data from. Needs to be supported by Common Voice.
+
+    Returns:
+        str: Status text for Gradio app
+    """
     language_id = languages_dict[language]
     source_text_file = Path(f"{parent_dir}/{language_id}_sentences.tsv")
 
@@ -50,6 +60,17 @@ def go_next(index: int) -> Tuple[int, str]:
 
 
 def save_audio_to_file(audio_input: gr.Audio, index: int) -> str:
+    """
+    Save the audio recording in a .wav file using the index of the text sentence in the filename.
+    And save the associated text sentence in a .csv file using the same index.
+
+    Args:
+        audio_input (gr.Audio): Gradio audio object to be converted to audio data and then saved to a .wav file
+        index (str): Index of the text sentence that will be associated with the audio
+
+    Returns:
+        str: Status text for Gradio app
+    """
     if recorded_text_file.is_file():
         text_df = pd.read_csv(recorded_text_file)
         text_df = pd.concat(
@@ -88,7 +109,7 @@ def setup_gradio_demo():
         previous_sentence_button = gr.Button("Previous")
         next_sentence_button = gr.Button("Next")
 
-        audio_input = gr.Audio(sources="microphone", label="Record")
+        audio_input = gr.Audio(sources=["microphone"], label="Record")
 
         save_button = gr.Button("Save recording to file")
         save_result = gr.Markdown()
