@@ -14,11 +14,9 @@ recorded_text_file = Path(f"{parent_dir}/text.csv")
 
 languages_dict = get_available_languages_in_cv(dataset_id_cv)
 
-
 def load_cv_sentences(language: str, index: int) -> str:
     language_id = languages_dict[language]
     source_text_file = Path(f"{parent_dir}/{language_id}_sentences.tsv")
-
     if not source_text_file.is_file():
         validated_sentences = hf_hub_download(
             repo_id=dataset_id_cv,
@@ -32,24 +30,20 @@ def load_cv_sentences(language: str, index: int) -> str:
 
     global sentences
     sentences = pd.read_table(source_text_file)["sentence"]
-    return f"Loaded {language} sentences for transcription from {source_text_file}"
-
+    return f"✅ Loaded {language} sentences from {source_text_file}"
 
 def load_from_index(index: int):
     return sentences[int(index)]
-
 
 def go_previous(index: int) -> Tuple[int, str]:
     index -= 1
     return index, sentences[index]
 
-
 def go_next(index: int) -> Tuple[int, str]:
     index += 1
     return index, sentences[index]
 
-
-def save_audio_to_file(audio_input: gr.Audio, index: int) -> str:
+def save_audio_to_file(audio_input: gr.Audio, index: int) -> Tuple[str, None]:
     if recorded_text_file.is_file():
         text_df = pd.read_csv(recorded_text_file)
         text_df = pd.concat(
@@ -64,63 +58,72 @@ def save_audio_to_file(audio_input: gr.Audio, index: int) -> str:
     text_df.to_csv(recorded_text_file, index=False)
 
     audio_filepath = f"{parent_dir}/rec_{index}.wav"
-
     sr, data = audio_input
     sf.write(file=audio_filepath, data=data, samplerate=sr)
-
-    return f"Updated {recorded_text_file} and saved recording to {audio_filepath}"
-
+    
+    return (f"✅ Updated {recorded_text_file}\n✅ Saved recording to {audio_filepath}", None)
 
 def setup_gradio_demo():
-    with gr.Blocks() as demo:
-        ### Select language to build local dataset ###
+    custom_css = ".gradio-container { max-width: 450px; margin: 0 auto; }"
+    with gr.Blocks(css=custom_css) as demo:
+        gr.Markdown(
+            "#🎤 Speech-to-text Dataset Recorder\n"
+            "1. Select a language and click **Load language text dataset**.\n"
+            "2. Set an index or use **← Previous** / **Next →** to navigate sentences.\n"
+            "3. Record audio and click **Save recording to file**.\n"
+        )
         selected_lang = gr.Dropdown(
             choices=list(languages_dict.keys()), value="", label="Select a language"
         )
         load_lang_button = gr.Button("Load language text dataset")
         dataset_loaded = gr.Markdown()
 
-        ### Dataset building ###
-        index = gr.Number(value=0, label="Skip to index")
+        with gr.Row():
+            with gr.Column(scale=1):
+                index = gr.Number(value=0, label="Skip to index")
+            with gr.Column(scale=3):
+                load_index_button = gr.Button("Load from index")
+                with gr.Row():
+                    previous_sentence_button = gr.Button("← Previous")
+                    next_sentence_button = gr.Button("Next →")
+
         sentence_textbox = gr.Text(label="Read and record the following sentence")
-
-        load_index_button = gr.Button("Load from index")
-        previous_sentence_button = gr.Button("Previous")
-        next_sentence_button = gr.Button("Next")
-
         audio_input = gr.Audio(sources="microphone", label="Record")
-
         save_button = gr.Button("Save recording to file")
         save_result = gr.Markdown()
 
-        ### Event listeners ###
         load_lang_button.click(
             fn=load_cv_sentences,
             inputs=[selected_lang, index],
             outputs=[dataset_loaded],
+            queue=True
         )
         load_index_button.click(
             fn=load_from_index,
             inputs=[index],
             outputs=[sentence_textbox],
+            queue=True
         )
         previous_sentence_button.click(
             fn=go_previous,
             inputs=[index],
             outputs=[index, sentence_textbox],
+            queue=True
         )
         next_sentence_button.click(
             fn=go_next,
             inputs=[index],
             outputs=[index, sentence_textbox],
+            queue=True
         )
         save_button.click(
             fn=save_audio_to_file,
             inputs=[audio_input, index],
-            outputs=[save_result],
+            outputs=[save_result, audio_input],
+            queue=True
         )
+    demo.queue()
     demo.launch()
-
 
 if __name__ == "__main__":
     sentences = []
