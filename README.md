@@ -19,6 +19,8 @@ This blueprint enables you to create your own [Speech-to-Text](https://en.wikipe
 
 ## Quick-start
 
+**_Note_**: All scripts should be executed from the root directory of the repository.
+
 1. Use a virtual environment and install dependencies: `pip install -e .` & install [ffmpeg](https://ffmpeg.org) e.g. for Ubuntu: `sudo apt install ffmpeg`, for Mac: `brew install ffmpeg`
 2. (Optional) Create your own Speech-to-Text dataset by running `python demo/make_local_dataset_app.py`
 3. Configure `config.yaml` with the model, dataset and hyperparameters of your choice.
