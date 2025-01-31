@@ -14,6 +14,7 @@ recorded_text_file = Path(f"{parent_dir}/text.csv")
 
 languages_dict = get_available_languages_in_cv(dataset_id_cv)
 
+
 def load_cv_sentences(language: str, index: int) -> str:
     language_id = languages_dict[language]
     source_text_file = Path(f"{parent_dir}/{language_id}_sentences.tsv")
@@ -32,16 +33,20 @@ def load_cv_sentences(language: str, index: int) -> str:
     sentences = pd.read_table(source_text_file)["sentence"]
     return f"✅ Loaded {language} sentences from {source_text_file}"
 
+
 def load_from_index(index: int):
     return sentences[int(index)]
+
 
 def go_previous(index: int) -> Tuple[int, str]:
     index -= 1
     return index, sentences[index]
 
+
 def go_next(index: int) -> Tuple[int, str]:
     index += 1
     return index, sentences[index]
+
 
 def save_audio_to_file(audio_input: gr.Audio, index: int) -> Tuple[str, None]:
     if recorded_text_file.is_file():
@@ -60,8 +65,12 @@ def save_audio_to_file(audio_input: gr.Audio, index: int) -> Tuple[str, None]:
     audio_filepath = f"{parent_dir}/rec_{index}.wav"
     sr, data = audio_input
     sf.write(file=audio_filepath, data=data, samplerate=sr)
-    
-    return (f"✅ Updated {recorded_text_file}\n✅ Saved recording to {audio_filepath}", None)
+
+    return (
+        f"✅ Updated {recorded_text_file}\n✅ Saved recording to {audio_filepath}",
+        None,
+    )
+
 
 def setup_gradio_demo():
     custom_css = ".gradio-container { max-width: 450px; margin: 0 auto; }"
@@ -96,34 +105,29 @@ def setup_gradio_demo():
             fn=load_cv_sentences,
             inputs=[selected_lang, index],
             outputs=[dataset_loaded],
-            queue=True
+            queue=True,
         )
         load_index_button.click(
-            fn=load_from_index,
-            inputs=[index],
-            outputs=[sentence_textbox],
-            queue=True
+            fn=load_from_index, inputs=[index], outputs=[sentence_textbox], queue=True
         )
         previous_sentence_button.click(
             fn=go_previous,
             inputs=[index],
             outputs=[index, sentence_textbox],
-            queue=True
+            queue=True,
         )
         next_sentence_button.click(
-            fn=go_next,
-            inputs=[index],
-            outputs=[index, sentence_textbox],
-            queue=True
+            fn=go_next, inputs=[index], outputs=[index, sentence_textbox], queue=True
         )
         save_button.click(
             fn=save_audio_to_file,
             inputs=[audio_input, index],
             outputs=[save_result, audio_input],
-            queue=True
+            queue=True,
         )
     demo.queue()
     demo.launch()
+
 
 if __name__ == "__main__":
     sentences = []
