@@ -39,14 +39,14 @@ def setup_gradio_demo():
             choices=model_ids, value=None, label="Select a model"
         )
         selected_lang = gr.Dropdown(
-            choices=languages, value=None, label="Select a language"
+            choices=list(languages), value=None, label="Select a language"
         )
         load_model_button = gr.Button("Load model")
         model_loaded = gr.Markdown()
 
         ### Transcription ###
         audio_input = gr.Audio(
-            sources="microphone", type="filepath", label="Record a message"
+            sources=["microphone"], type="filepath", label="Record a message"
         )
         transcribe_button = gr.Button("Transcribe")
         transcribe_output = gr.Text(label="Output")
