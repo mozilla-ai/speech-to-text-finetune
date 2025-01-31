@@ -108,7 +108,10 @@ def setup_gradio_demo():
             queue=True,
         )
         load_index_button.click(
-            fn=load_from_index, inputs=[index], outputs=[sentence_textbox], queue=True
+            fn=load_from_index,
+            inputs=[index],
+            outputs=[sentence_textbox],
+            queue=True,
         )
         previous_sentence_button.click(
             fn=go_previous,
@@ -117,7 +120,10 @@ def setup_gradio_demo():
             queue=True,
         )
         next_sentence_button.click(
-            fn=go_next, inputs=[index], outputs=[index, sentence_textbox], queue=True
+            fn=go_next,
+            inputs=[index],
+            outputs=[index, sentence_textbox],
+            queue=True,
         )
         save_button.click(
             fn=save_audio_to_file,
