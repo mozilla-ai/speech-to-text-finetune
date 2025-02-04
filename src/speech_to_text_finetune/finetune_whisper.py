@@ -29,12 +29,17 @@ from speech_to_text_finetune.hf_utils import (
 )
 
 
-def run_finetuning(config_path: str = "config.yaml") -> Tuple[Dict, Dict]:
+def run_finetuning(
+    config_path: str = "config.yaml",
+    languages_path: str = "languages_common_voice_17_0.json",
+) -> Tuple[Dict, Dict]:
     """
     Complete pipeline for preprocessing the Common Voice dataset and then finetuning a Whisper model on it.
 
     Args:
-        config_path (str): The filepath to a yaml file that follows the format defined in config.py
+        config_path (str): yaml filepath that follows the format defined in config.py
+        languages_path (str): json filepath that stores all languages available for finetuning,
+          see hf_utils/get_available_languages_in_cv() for more details.
 
     Returns:
         Tuple[Dict, Dict]: evaluation metrics from the baseline and the finetuned models
@@ -43,14 +48,12 @@ def run_finetuning(config_path: str = "config.yaml") -> Tuple[Dict, Dict]:
 
     hf_username = get_hf_username()
 
-    with open(
-        "src/speech_to_text_finetune/languages_common_voice_17_0.json"
-    ) as json_file:
+    with open(languages_path) as json_file:
         languages_name_to_id = json.load(json_file)
     language_id = languages_name_to_id[cfg.language]
 
     if cfg.repo_name == "default":
-        cfg.repo_name = f"{cfg.model.model_id.split('/')[1]}-{language_id}"
+        cfg.repo_name = f"{cfg.model_id.split('/')[1]}-{language_id}"
     hf_repo_name = f"{hf_username}/{cfg.repo_name}"
     local_output_dir = f"./artifacts/{cfg.repo_name}"
 
@@ -88,7 +91,7 @@ def run_finetuning(config_path: str = "config.yaml") -> Tuple[Dict, Dict]:
     model.generation_config.forced_decoder_ids = None
 
     logger.info("Preparing dataset...")
-    dataset = process_dataset(dataset, feature_extractor, tokenizer, cfg.num_proc)
+    dataset = process_dataset(dataset, feature_extractor, tokenizer)
 
     data_collator = DataCollatorSpeechSeq2SeqWithPadding(
         processor=processor,
@@ -193,4 +196,7 @@ def compute_word_error_rate(
 
 
 if __name__ == "__main__":
-    run_finetuning(config_path="src/speech_to_text_finetune/config.yaml")
+    run_finetuning(
+        config_path="src/speech_to_text_finetune/config.yaml",
+        languages_path="/artifacts/languages_common_voice_17_0.json",
+    )
