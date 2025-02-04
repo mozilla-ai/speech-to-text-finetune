@@ -106,34 +106,28 @@ def setup_gradio_demo():
         load_lang_button.click(
             fn=load_cv_sentences,
             inputs=[selected_lang, index],
-            outputs=[dataset_loaded],
-            queue=True,
+            outputs=[dataset_loaded]
         )
         load_index_button.click(
             fn=load_from_index,
             inputs=[index],
-            outputs=[sentence_textbox],
-            queue=True,
+            outputs=[sentence_textbox]
         )
         previous_sentence_button.click(
             fn=go_previous,
             inputs=[index],
-            outputs=[index, sentence_textbox],
-            queue=True,
+            outputs=[index, sentence_textbox]
         )
         next_sentence_button.click(
             fn=go_next,
             inputs=[index],
-            outputs=[index, sentence_textbox],
-            queue=True,
+            outputs=[index, sentence_textbox]
         )
         save_button.click(
             fn=save_audio_to_file,
             inputs=[audio_input, index],
-            outputs=[save_result, audio_input],
-            queue=True,
+            outputs=[save_result, audio_input]
         )
-    demo.queue()
     demo.launch()
 
 
