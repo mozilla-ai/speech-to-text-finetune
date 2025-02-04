@@ -35,10 +35,11 @@ def transcribe(pipe: Pipeline, audio: gr.Audio) -> str:
 def setup_gradio_demo():
     with gr.Blocks() as demo:
         gr.Markdown(
-            "# 🗣️ Speech-to-Text Transcription\n"
-            "1️. Select a model** and a **language** from the dropdowns. \n"
-            "2️. Load the model** by clicking the **Load model** button. \n"
-            "3️. Record a message** and click **Transcribe** to see the transcription. \n"
+            """ # 🗣️ Speech-to-Text Transcription
+            ### 1. Select a model and a language from the dropdowns.
+            ### 2. Load the model by clicking the Load model button.
+            ### 3. Record a message and click Transcribe to see the transcription.
+            """
         )
         ### Model & Language selection ###
         dropdown_model = gr.Dropdown(
