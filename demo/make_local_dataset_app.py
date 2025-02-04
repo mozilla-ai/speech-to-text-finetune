@@ -76,10 +76,12 @@ def setup_gradio_demo():
     custom_css = ".gradio-container { max-width: 450px; margin: 0 auto; }"
     with gr.Blocks(css=custom_css) as demo:
         gr.Markdown(
-            "#🎤 Speech-to-text Dataset Recorder\n"
-            "1. Select a language and click **Load language text dataset**.\n"
-            "2. Set an index or use **← Previous** / **Next →** to navigate sentences.\n"
-            "3. Record audio and click **Save recording to file**.\n"
+            """
+            # 🎤 Speech-to-text Dataset Recorder
+            ### 1. Select a language and click **Load language text dataset**.
+            ### 2. Set an index and click **Load from index** or use **← Previous** / **Next →** to navigate sentences.
+            ### 3. Record audio and click **Save recording to file**.
+            """
         )
         selected_lang = gr.Dropdown(
             choices=list(languages_dict.keys()), value="", label="Select a language"
