@@ -29,11 +29,15 @@ This blueprint consists of three independent, yet complementary, components:
 
 ### Suggested flow for this repository
 
+**_Note_**: A HF account is required if you are planning on using the Common Voice dataset for finetuning, or using the text data from Common Voice to make your own STT dataset.
+
 1. Use a virtual environment and install dependencies: `pip install -e .` & [ffmpeg](https://ffmpeg.org) e.g. for Ubuntu: `sudo apt install ffmpeg`, for Mac: `brew install ffmpeg`
 2. Try existing transcription HF models on your own language & voice locally: `python demo/transcribe_app.py`
-3. If you are not happy with the results, you can finetune a model with data of your language from Common Voice
-   1. Configure `config.yaml` with the model, Common Voice dataset id from HF and hyperparameters of your choice.
-   2. Finetune a model: `python src/speech_to_text_finetune/finetune_whisper.py`
+3. If you are not happy with the results, you can finetune a model with data of your language from Common Voice.
+   1. Go to the HF [Common Voice dataset repo](https://huggingface.co/datasets/mozilla-foundation/common_voice_17_0) and request access. It should be approved automatically if you are logged in.
+   2. In your local machine, run the command `huggingface-cli login` and follow the instructions to login to your account.
+   3. Configure `config.yaml` with the model, Common Voice dataset id from HF and hyperparameters of your choice.
+   4. Finetune a model: `python src/speech_to_text_finetune/finetune_whisper.py`
 4. Try again the transcription app with your newly finetuned model.
 5. If the results are still not satisfactory, create your own Speech-to-Text dataset and model.
    1. Create a dataset: `python demo/make_local_dataset_app.py`
