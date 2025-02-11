@@ -198,5 +198,5 @@ def compute_word_error_rate(
 if __name__ == "__main__":
     run_finetuning(
         config_path="src/speech_to_text_finetune/config.yaml",
-        languages_path="/artifacts/languages_common_voice_17_0.json",
+        languages_path="demo/languages_common_voice_17_0.json",
     )
