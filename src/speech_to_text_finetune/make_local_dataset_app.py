@@ -34,9 +34,9 @@ def load_cv_sentences(language: str) -> str:
     if not source_text_file.is_file():
         validated_sentences = hf_hub_download(
             repo_id=dataset_id_cv,
-            filename=f"{cv_dir}/transcript/{language_id}/validated.tsv",
+            filename=f"transcript/{language_id}/validated.tsv",
             repo_type="dataset",
-            local_dir=parent_dir,
+            local_dir=cv_dir,
         )
 
         Path(validated_sentences).rename(source_text_file)
