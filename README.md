@@ -3,13 +3,22 @@
 [![Tests](https://github.com/mozilla-ai/speech-to-text-finetune/actions/workflows/tests.yaml/badge.svg)](https://github.com/mozilla-ai/speech-to-text-finetune/actions/workflows/tests.yaml/)
 [![Ruff](https://github.com/mozilla-ai/speech-to-text-finetune/actions/workflows/lint.yaml/badge.svg?label=Ruff)](https://github.com/mozilla-ai/speech-to-text-finetune/actions/workflows/lint.yaml/)
 
-<p align="center"><img src="./images/Blueprints-logo.png" width="35%" alt="Project logo"/></p>
+<p align="center">
+  <picture>
+    <!-- When the user prefers dark mode, show the white logo -->
+    <source media="(prefers-color-scheme: dark)" srcset="./images/Blueprint-logo-white.png">
+    <!-- When the user prefers light mode, show the black logo -->
+    <source media="(prefers-color-scheme: light)" srcset="./images/Blueprint-logo-black.png">
+    <!-- Fallback: default to the black logo -->
+    <img src="./images/Blueprint-logo-black.png" width="35%" alt="Project logo"/>
+  </picture>
+</p>
 
 This blueprint enables you to create your own [Speech-to-Text](https://en.wikipedia.org/wiki/Speech_recognition) / Automatic Speech Recognition (ASR) dataset, or use the [Common Voice](https://commonvoice.mozilla.org/) dataset, to finetune an ASR model to improve performance for your specific language & use-case. All of this can be done locally (even on your laptop!) ensuring no data leaves your machine, safeguarding your privacy. Using Common Voice as a backbone enables this blueprint to support an impressively wide variety of languages! More the exact list of languages supported please visit the Common Voice [website](https://commonvoice.mozilla.org/en/languages).
 
-📘 To explore this project further and discover other Blueprints, visit the [**Blueprints Hub**](https://developer-hub.mozilla.ai/blueprints/create-your-own-tailored-podcast-using-your-documents).
+📘 To explore this project further and discover other Blueprints, visit the [**Blueprints Hub**](https://developer-hub.mozilla.ai/).
 
-### 👉 📖 For more detailed guidance on using this project, please visit our [Docs here](https://mozilla-ai.github.io/Blueprint-template/)
+ 📖 For more detailed guidance on using this project, please visit our [Docs here](https://mozilla-ai.github.io/speech-to-text-finetune/)
 
 ### Built with
 - Python 3.10+
