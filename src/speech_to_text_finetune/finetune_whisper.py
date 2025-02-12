@@ -29,6 +29,16 @@ from speech_to_text_finetune.hf_utils import (
 )
 
 
+def get_language_id_from_language_name(language: str, languages_path: str) -> str:
+    """
+    Given a full language name (e.g. English), return the two/three letter identifier (en)
+    as defined by the language map dictionary stored under languages_path
+    """
+    with open(languages_path) as json_file:
+        languages_name_to_id = json.load(json_file)
+    return languages_name_to_id[language]
+
+
 def run_finetuning(
     config_path: str = "config.yaml",
     languages_path: str = "languages_common_voice_17_0.json",
@@ -45,12 +55,8 @@ def run_finetuning(
         Tuple[Dict, Dict]: evaluation metrics from the baseline and the finetuned models
     """
     cfg = load_config(config_path)
-
     hf_username = get_hf_username()
-
-    with open(languages_path) as json_file:
-        languages_name_to_id = json.load(json_file)
-    language_id = languages_name_to_id[cfg.language]
+    language_id = get_language_id_from_language_name(cfg.language, languages_path)
 
     if cfg.repo_name == "default":
         cfg.repo_name = f"{cfg.model_id.split('/')[1]}-{language_id}"
