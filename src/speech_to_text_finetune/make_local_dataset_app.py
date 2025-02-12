@@ -22,7 +22,8 @@ def load_cv_sentences(language: str) -> str:
     If the file doesn't exist locally, it will download it from HF.
 
     Args:
-        language (str): Full name of the language to download the text data from. Needs to be supported by Common Voice.
+        language (str): Full name of the language to download the text data from.
+        Needs to be supported by Common Voice.
 
     Returns:
         str: Status text for Gradio app
