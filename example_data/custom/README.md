@@ -1,0 +1,1 @@
+This data was sourced from Common Voice Delta Segment 20.0 of 12/11/2024. We went through the validated sentences (`validated.tsv`) and picked 10 samples with their respective audio files. We converted the downloaded mp3 files to wav using ffmpeg.
