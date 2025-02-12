@@ -1,7 +1,7 @@
 model_id: openai/whisper-tiny
-dataset_id: local_data
+dataset_id: example_data/custom
 dataset_source: local
-language: Greek
+language: English
 repo_name: default
 
 training_hp:
