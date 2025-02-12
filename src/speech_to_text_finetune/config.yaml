@@ -13,7 +13,7 @@ training_hp:
     learning_rate: 1e-5
     warmup_steps: 50
     gradient_checkpointing: True
-    fp16: True
+    fp16: False  # If you have a GPU set this to True for faster training
     eval_strategy: steps
     per_device_eval_batch_size: 8
     predict_with_generate: True
