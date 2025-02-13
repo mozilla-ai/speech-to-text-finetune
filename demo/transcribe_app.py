@@ -27,9 +27,12 @@ def load_model(model_id: str, language: str) -> Tuple[Pipeline, str]:
         yield None, "⚠️ Please select a model and a language from the dropdown"
 
 
-def transcribe(pipe: Pipeline, audio: gr.Audio) -> str:
+def transcribe(
+    pipe: Pipeline, audio: gr.Audio, pipe_2: Pipeline | None
+) -> Tuple[str, str]:
     text = pipe(audio)["text"]
-    return text
+    text_2 = pipe_2(audio)["text"] if pipe_2 else ""
+    return text, text_2
 
 
 def setup_gradio_demo():
@@ -42,32 +45,56 @@ def setup_gradio_demo():
             """
         )
         ### Model & Language selection ###
-        dropdown_model = gr.Dropdown(
-            choices=model_ids, value=None, label="Select a model"
-        )
-        selected_lang = gr.Dropdown(
-            choices=list(languages), value=None, label="Select a language"
-        )
-        load_model_button = gr.Button("Load model")
-        model_loaded = gr.Markdown()
+        with gr.Row():
+            with gr.Column(scale=2):
+                dropdown_model = gr.Dropdown(
+                    choices=model_ids, value=None, label="Select a model"
+                )
+                selected_lang = gr.Dropdown(
+                    choices=list(languages), value=None, label="Select a language"
+                )
+                load_model_button = gr.Button("Load model")
+                model_loaded = gr.Markdown()
+
+            with gr.Column(scale=2):
+                gr.Markdown(
+                    "*Optionally*, you can load a second STT model to run the same audio in order to easily "
+                    "compare the transcriptions between two models"
+                )
+                dropdown_second__model = gr.Dropdown(
+                    choices=model_ids, value=None, label="Select a comparison model"
+                )
+                load_second_model_button = gr.Button("Load comparison model")
+                second_model_loaded = gr.Markdown()
 
         ### Transcription ###
         audio_input = gr.Audio(
             sources=["microphone"], type="filepath", label="Record a message"
         )
         transcribe_button = gr.Button("Transcribe")
-        transcribe_output = gr.Text(label="Output")
+        with gr.Row():
+            with gr.Column():
+                transcribe_output = gr.Text(label="Output of primary model")
+            with gr.Column():
+                transcribe_second_output = gr.Text(label="Output of comparison model")
 
         ### Event listeners ###
         model = gr.State()
+        second_model = gr.State()
         load_model_button.click(
             fn=load_model,
             inputs=[dropdown_model, selected_lang],
             outputs=[model, model_loaded],
         )
-
+        load_second_model_button.click(
+            fn=load_model,
+            inputs=[dropdown_second__model, selected_lang],
+            outputs=[second_model, second_model_loaded],
+        )
         transcribe_button.click(
-            fn=transcribe, inputs=[model, audio_input], outputs=transcribe_output
+            fn=transcribe,
+            inputs=[model, audio_input, second_model],
+            outputs=[transcribe_output, transcribe_second_output],
         )
 
     demo.launch()
