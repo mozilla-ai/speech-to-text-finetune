@@ -1,6 +1,6 @@
 model_id: openai/whisper-tiny
-dataset_id: local_data
-dataset_source: local
+dataset_id: mozilla-foundation/common_voice_17_0
+dataset_source: HF
 language: Greek
 repo_name: default
 
@@ -13,7 +13,7 @@ training_hp:
     learning_rate: 1e-5
     warmup_steps: 50
     gradient_checkpointing: True
-    fp16: True
+    fp16: False  # If a GPU is available, set it to True for faster training & decreased memory usage -> bigger batches
     eval_strategy: steps
     per_device_eval_batch_size: 8
     predict_with_generate: True
