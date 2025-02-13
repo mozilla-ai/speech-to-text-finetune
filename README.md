@@ -40,6 +40,7 @@ This blueprint consists of three independent, yet complementary, components:
 
 1. Use a virtual environment and install dependencies: `pip install -e .` & [ffmpeg](https://ffmpeg.org) e.g. for Ubuntu: `sudo apt install ffmpeg`, for Mac: `brew install ffmpeg`
 
+
 ### Evaluate existing STT models from the HuggingFace repository.
 
 1. Simply execute: `python demo/transcribe_app.py`
