@@ -12,7 +12,6 @@ def save_text_audio_to_file(
     audio_input: gr.Audio,
     sentence: str,
     dataset_dir: str,
-    index: str | None = None,
 ) -> Tuple[str, None]:
     """
     Save the audio recording in a .wav file using the index of the text sentence in the filename.
@@ -22,27 +21,24 @@ def save_text_audio_to_file(
         audio_input (gr.Audio): Gradio audio object to be converted to audio data and then saved to a .wav file
         sentence (str): The text sentence that will be associated with the audio
         dataset_dir (str): The dataset directory path to store the indexed sentences and the associated audio files
-        index (str | None): Index of the text sentence that will be associated with the audio.
-        If None, start from 0 or append after the last element in the existing .csv
 
     Returns:
         str: Status text for Gradio app
+        None: Returning None here will reset the audio module to record again from scratch
     """
     Path(dataset_dir).mkdir(parents=True, exist_ok=True)
-    if Path(f"{dataset_dir}/text.csv").is_file():
-        text_df = pd.read_csv(f"{dataset_dir}/text.csv")
-        if index is None:
-            index = len(text_df)
-        text_df = pd.concat(
-            [text_df, pd.DataFrame([{"index": index, "sentence": sentence}])],
-            ignore_index=True,
-        )
-        text_df = text_df.drop_duplicates().reset_index(drop=True)
-    else:
-        if index is None:
-            index = 0
-        text_df = pd.DataFrame({"index": index, "sentence": [sentence]})
+    text_data_path = Path(f"{dataset_dir}/text.csv")
 
+    if text_data_path.is_file():
+        text_df = pd.read_csv(text_data_path)
+    else:
+        text_df = pd.DataFrame(columns=["index", "sentence"])
+
+    index = len(text_df)
+    text_df = pd.concat(
+        [text_df, pd.DataFrame([{"index": index, "sentence": sentence}])],
+        ignore_index=True,
+    )
     text_df = text_df.sort_values(by="index")
     text_df.to_csv(f"{dataset_dir}/text.csv", index=False)
 
