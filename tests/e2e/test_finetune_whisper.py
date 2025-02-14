@@ -13,7 +13,7 @@ def test_finetune_whisper_local():
 
     base_results, eval_results = run_finetuning(
         config_path=cfg_path,
-        languages_path=f"{dir_path}/languages_common_voice_17_0.json",
+        languages_path="example_data/languages_common_voice_17_0.json",
     )
 
     cfg = load_config(cfg_path)

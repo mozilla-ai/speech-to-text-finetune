@@ -2,7 +2,7 @@ import pytest
 
 from speech_to_text_finetune.finetune_whisper import get_language_id_from_language_name
 
-default_lang_path = "artifacts/languages_common_voice_17_0.json"
+default_lang_path = "example_data/languages_common_voice_17_0.json"
 
 
 def test_get_language_id_from_language_name():

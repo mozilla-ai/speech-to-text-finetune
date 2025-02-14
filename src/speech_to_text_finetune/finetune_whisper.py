@@ -204,5 +204,5 @@ def compute_word_error_rate(
 if __name__ == "__main__":
     run_finetuning(
         config_path="example_data/config.yaml",
-        languages_path="artifacts/languages_common_voice_17_0.json",
+        languages_path="example_data/languages_common_voice_17_0.json",
     )
