@@ -84,7 +84,7 @@ def process_dataset(
     tokenizer: WhisperTokenizer,
 ) -> DatasetDict:
     """
-    Process dataset to the expected format by a Whisper model. More info here:
+    Process dataset to the expected format by a Whisper model.
     """
     # Create a new column that consists of the resampled audio samples in the right sample rate for whisper
     dataset = dataset.cast_column("audio", Audio(sampling_rate=16000))
