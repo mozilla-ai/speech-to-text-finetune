@@ -4,7 +4,17 @@ from loguru import logger
 import importlib.util
 from pathlib import Path
 from typing import Dict
-from huggingface_hub import ModelCard, HfApi, ModelCardData, hf_hub_download
+from huggingface_hub import (
+    ModelCard,
+    HfApi,
+    ModelCardData,
+    hf_hub_download,
+    repo_exists,
+)
+
+
+def hf_model_exists(model_repo_id: str) -> bool:
+    return repo_exists(model_repo_id)
 
 
 def get_hf_username() -> str:
