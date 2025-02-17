@@ -38,7 +38,7 @@ Get started right away using one of the options below:
 | [![Try Finetuning on Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/mozilla-ai/speech-to-text-finetune/blob/main/demo/notebook.ipynb) | _Coming Soon!_ | [![Try on Codespaces](https://github.com/codespaces/badge.svg)](https://github.com/codespaces/new?hide_repo_select=true&ref=main&repo=mozilla-ai/speech-to-text-finetune&skip_quickstart=true&machine=standardLinux32gb) |
 
 
-**_Note_**: All scripts should be executed from the root directory of the repository.
+## Try it locally
 
 This blueprint consists of three independent, yet complementary, components:
 
@@ -49,7 +49,6 @@ This blueprint consists of three independent, yet complementary, components:
 ### Setup
 
 1. Use a virtual environment and install dependencies: `pip install -e .` & [ffmpeg](https://ffmpeg.org) e.g. for Ubuntu: `sudo apt install ffmpeg`, for Mac: `brew install ffmpeg`
-
 
 ### Evaluate existing STT models from the HuggingFace repository.
 
@@ -73,6 +72,7 @@ This blueprint consists of three independent, yet complementary, components:
 4. Configure `config.yaml` with the model, Common Voice dataset repo id of HF and hyperparameters of your choice.
 5. Finetune a model by running: `python src/speech_to_text_finetune/finetune_whisper.py`
 
+**_Note_**: All scripts should be executed from the root directory of the repository.
 
 ## Troubleshooting
 
