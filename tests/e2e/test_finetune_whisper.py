@@ -11,10 +11,7 @@ def test_finetune_whisper_local():
 
     cfg_path = f"{dir_path}/config.yaml"
 
-    base_results, eval_results = run_finetuning(
-        config_path=cfg_path,
-        languages_path="example_data/languages_common_voice_17_0.json",
-    )
+    base_results, eval_results = run_finetuning(config_path=cfg_path)
 
     cfg = load_config(cfg_path)
     expected_dir_path = Path(f"artifacts/{cfg.repo_name}")
