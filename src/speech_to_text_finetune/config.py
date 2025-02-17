@@ -1,5 +1,23 @@
+import json
+
 import yaml
 from pydantic import BaseModel
+
+
+def set_cv_languages_mapping(languages_path: str):
+    """
+    Args:
+        languages_path (str): json filepath that stores all languages available for finetuning,
+          see hf_utils/get_available_languages_in_cv() for more details.
+    """
+    with open(languages_path) as json_file:
+        languages_name_to_id = json.load(json_file)
+    return languages_name_to_id
+
+
+LANGUAGES_NAME_TO_ID = set_cv_languages_mapping(
+    "example_data/languages_common_voice_17_0.json"
+)
 
 
 def load_config(config_path: str):

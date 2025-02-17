@@ -1,4 +1,3 @@
-import json
 from functools import partial
 
 from transformers import (
@@ -16,7 +15,7 @@ import evaluate
 from evaluate import EvaluationModule
 from loguru import logger
 
-from speech_to_text_finetune.config import load_config
+from speech_to_text_finetune.config import load_config, LANGUAGES_NAME_TO_ID
 from speech_to_text_finetune.data_process import (
     load_common_voice,
     load_local_dataset,
@@ -29,34 +28,21 @@ from speech_to_text_finetune.hf_utils import (
 )
 
 
-def get_language_id_from_language_name(language: str, languages_path: str) -> str:
-    """
-    Given a full language name (e.g. English), return the two/three letter identifier (en)
-    as defined by the language map dictionary stored under languages_path
-    """
-    with open(languages_path) as json_file:
-        languages_name_to_id = json.load(json_file)
-    return languages_name_to_id[language]
-
-
 def run_finetuning(
     config_path: str = "config.yaml",
-    languages_path: str = "languages_common_voice_17_0.json",
 ) -> Tuple[Dict, Dict]:
     """
     Complete pipeline for preprocessing the Common Voice dataset and then finetuning a Whisper model on it.
 
     Args:
         config_path (str): yaml filepath that follows the format defined in config.py
-        languages_path (str): json filepath that stores all languages available for finetuning,
-          see hf_utils/get_available_languages_in_cv() for more details.
 
     Returns:
         Tuple[Dict, Dict]: evaluation metrics from the baseline and the finetuned models
     """
     cfg = load_config(config_path)
     hf_username = get_hf_username()
-    language_id = get_language_id_from_language_name(cfg.language, languages_path)
+    language_id = LANGUAGES_NAME_TO_ID[cfg.language]
 
     if cfg.repo_name == "default":
         cfg.repo_name = f"{cfg.model_id.split('/')[1]}-{language_id}"
@@ -204,5 +190,4 @@ def compute_word_error_rate(
 if __name__ == "__main__":
     run_finetuning(
         config_path="example_data/config.yaml",
-        languages_path="example_data/languages_common_voice_17_0.json",
     )
