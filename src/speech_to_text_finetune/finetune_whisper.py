@@ -1,3 +1,4 @@
+import json
 from functools import partial
 
 from transformers import (
@@ -18,22 +19,27 @@ from loguru import logger
 from speech_to_text_finetune.config import load_config
 from speech_to_text_finetune.data_process import (
     load_common_voice,
+    load_local_dataset,
     DataCollatorSpeechSeq2SeqWithPadding,
     process_dataset,
 )
 from speech_to_text_finetune.hf_utils import (
     get_hf_username,
     upload_custom_hf_model_card,
-    get_available_languages_in_cv,
 )
 
 
-def run_finetuning(config_path: str = "config.yaml") -> Tuple[Dict, Dict]:
+def run_finetuning(
+    config_path: str = "config.yaml",
+    languages_path: str = "languages_common_voice_17_0.json",
+) -> Tuple[Dict, Dict]:
     """
     Complete pipeline for preprocessing the Common Voice dataset and then finetuning a Whisper model on it.
 
     Args:
-        config_path (str): The filepath to a yaml file that follows the format defined in config.py
+        config_path (str): yaml filepath that follows the format defined in config.py
+        languages_path (str): json filepath that stores all languages available for finetuning,
+          see hf_utils/get_available_languages_in_cv() for more details.
 
     Returns:
         Tuple[Dict, Dict]: evaluation metrics from the baseline and the finetuned models
@@ -42,22 +48,29 @@ def run_finetuning(config_path: str = "config.yaml") -> Tuple[Dict, Dict]:
 
     hf_username = get_hf_username()
 
-    languages_name_to_id = get_available_languages_in_cv(cfg.dataset_id)
+    with open(languages_path) as json_file:
+        languages_name_to_id = json.load(json_file)
     language_id = languages_name_to_id[cfg.language]
 
-    if not cfg.repo_name:
-        cfg.repo_name = f"{cfg.model.model_id.split('/')[1]}-{language_id}"
+    if cfg.repo_name == "default":
+        cfg.repo_name = f"{cfg.model_id.split('/')[1]}-{language_id}"
     hf_repo_name = f"{hf_username}/{cfg.repo_name}"
     local_output_dir = f"./artifacts/{cfg.repo_name}"
 
-    logger.info(
-        f"Finetuning job will soon start. "
-        f"Results will be saved local at {local_output_dir} uploaded in HF at {hf_repo_name}. "
-        f"Private repo is set to {cfg.training_hp.hub_private_repo}."
-    )
+    logger.info(f"Finetuning starts soon, results saved locally at {local_output_dir}")
+    if cfg.training_hp.push_to_hub:
+        logger.info(
+            f"Results will also be uploaded in HF at {hf_repo_name}. "
+            f"Private repo is set to {cfg.training_hp.hub_private_repo}."
+        )
 
     logger.info(f"Loading the {cfg.language} subset from the {cfg.dataset_id} dataset.")
-    dataset = load_common_voice(cfg.dataset_id, language_id)
+    if cfg.dataset_source == "HF":
+        dataset = load_common_voice(cfg.dataset_id, language_id)
+    elif cfg.dataset_source == "local":
+        dataset = load_local_dataset(cfg.dataset_id, train_split=0.8)
+    else:
+        raise ValueError(f"Unknown dataset source {cfg.dataset_source}")
 
     device = torch.cuda.get_device_name(0) if torch.cuda.is_available() else "CPU"
 
@@ -89,7 +102,7 @@ def run_finetuning(config_path: str = "config.yaml") -> Tuple[Dict, Dict]:
         output_dir=local_output_dir,
         hub_model_id=hf_repo_name,
         report_to=["tensorboard"],
-        **cfg.training_hp.dict(),
+        **cfg.training_hp.model_dump(),
     )
 
     metric = evaluate.load("wer")
@@ -126,7 +139,7 @@ def run_finetuning(config_path: str = "config.yaml") -> Tuple[Dict, Dict]:
     eval_results = trainer.evaluate()
     logger.info(f"Evaluation complete. Results:\n\t {eval_results}")
 
-    if cfg.training_hp.push_to_hf:
+    if cfg.training_hp.push_to_hub:
         logger.info(f"Uploading model and eval results to HuggingFace: {hf_repo_name}")
         trainer.push_to_hub()
         upload_custom_hf_model_card(
@@ -183,4 +196,7 @@ def compute_word_error_rate(
 
 
 if __name__ == "__main__":
-    run_finetuning(config_path="src/speech_to_text_finetune/config.yaml")
+    run_finetuning(
+        config_path="src/speech_to_text_finetune/config.yaml",
+        languages_path="demo/languages_common_voice_17_0.json",
+    )

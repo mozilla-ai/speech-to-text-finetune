@@ -1,5 +1,6 @@
 import os
 
+import pandas as pd
 import torch
 from dataclasses import dataclass
 from typing import Dict, List, Union
@@ -10,7 +11,7 @@ from transformers import (
     WhisperProcessor,
 )
 
-from datasets import load_dataset, DatasetDict, Audio
+from datasets import load_dataset, DatasetDict, Audio, Dataset
 
 
 def load_common_voice(dataset_id: str, language_id: str) -> DatasetDict:
@@ -21,7 +22,7 @@ def load_common_voice(dataset_id: str, language_id: str) -> DatasetDict:
         language_id: a registered language identifier from Common Voice (most often in ISO-639 format)
 
     Returns:
-        DatasetDict: Hugging Face dictionary that consists of two distinct datasets
+        DatasetDict: HF Dataset dictionary that consists of two distinct Datasets
     """
     common_voice = DatasetDict()
 
@@ -29,19 +30,7 @@ def load_common_voice(dataset_id: str, language_id: str) -> DatasetDict:
         dataset_id, language_id, split="train+validation"
     )
     common_voice["test"] = load_dataset(dataset_id, language_id, split="test")
-
-    return common_voice
-
-
-def process_dataset(
-    dataset: DatasetDict,
-    feature_extractor: WhisperFeatureExtractor,
-    tokenizer: WhisperTokenizer,
-) -> DatasetDict:
-    """
-    Process dataset to the expected format by a Whisper model. More info here:
-    """
-    dataset = dataset.remove_columns(
+    common_voice = common_voice.remove_columns(
         [
             "accent",
             "age",
@@ -55,6 +44,48 @@ def process_dataset(
         ]
     )
 
+    return common_voice
+
+
+def load_local_dataset(dataset_dir: str, train_split: float = 0.8) -> DatasetDict:
+    """
+    Load sentences and accompanied recorded audio files into a pandas DataFrame, then split into train/test and finally
+    load it into two distinct train Dataset and test Dataset.
+
+    Sentences and audio files should be indexed like this: <index>: <sentence> should be accompanied by rec_<index>.wav
+
+    Args:
+        dataset_dir (str): path to the local dataset, expecting a text.csv and .wav files under the directory
+        train_split (float): percentage split of the dataset to train+validation and test set
+
+    Returns:
+        DatasetDict: HF Dataset dictionary in the same exact format as the Common Voice dataset from load_common_voice
+    """
+    text_file = dataset_dir + "/text.csv"
+
+    dataframe = pd.read_csv(text_file)
+    audio_files = sorted(
+        [f"{dataset_dir}/{f}" for f in os.listdir(dataset_dir) if f.endswith(".wav")]
+    )
+
+    dataframe["audio"] = audio_files
+    train_index = round(len(dataframe) * train_split)
+
+    my_data = DatasetDict()
+    my_data["train"] = Dataset.from_pandas(dataframe[:train_index])
+    my_data["test"] = Dataset.from_pandas(dataframe[train_index:])
+
+    return my_data
+
+
+def process_dataset(
+    dataset: DatasetDict,
+    feature_extractor: WhisperFeatureExtractor,
+    tokenizer: WhisperTokenizer,
+) -> DatasetDict:
+    """
+    Process dataset to the expected format by a Whisper model. More info here:
+    """
     # Create a new column that consists of the resampled audio samples in the right sample rate for whisper
     dataset = dataset.cast_column("audio", Audio(sampling_rate=16000))
 

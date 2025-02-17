@@ -22,9 +22,9 @@ def load_model(model_id: str, language: str) -> Tuple[Pipeline, str]:
             model=model_id,
             generate_kwargs={"language": language},
         )
-        yield pipe, f"Model {model_id} has been loaded."
+        yield pipe, f"✅ Model {model_id} has been loaded."
     else:
-        yield None, "Please select a model and a language from the dropdown"
+        yield None, "⚠️ Please select a model and a language from the dropdown"
 
 
 def transcribe(pipe: Pipeline, audio: gr.Audio) -> str:
@@ -34,19 +34,26 @@ def transcribe(pipe: Pipeline, audio: gr.Audio) -> str:
 
 def setup_gradio_demo():
     with gr.Blocks() as demo:
+        gr.Markdown(
+            """ # 🗣️ Speech-to-Text Transcription
+            ### 1. Select a model and a language from the dropdowns.
+            ### 2. Load the model by clicking the Load model button.
+            ### 3. Record a message and click Transcribe to see the transcription.
+            """
+        )
         ### Model & Language selection ###
         dropdown_model = gr.Dropdown(
             choices=model_ids, value=None, label="Select a model"
         )
         selected_lang = gr.Dropdown(
-            choices=languages, value=None, label="Select a language"
+            choices=list(languages), value=None, label="Select a language"
         )
         load_model_button = gr.Button("Load model")
         model_loaded = gr.Markdown()
 
         ### Transcription ###
         audio_input = gr.Audio(
-            sources="microphone", type="filepath", label="Record a message"
+            sources=["microphone"], type="filepath", label="Record a message"
         )
         transcribe_button = gr.Button("Transcribe")
         transcribe_output = gr.Text(label="Output")
