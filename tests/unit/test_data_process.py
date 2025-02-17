@@ -24,8 +24,8 @@ def test_load_common_voice(mock_load_dataset):
     mock_load_dataset.assert_any_call(dataset_id, language_id, split="test")
 
 
-def test_load_local_dataset_default_split():
-    dataset = load_local_dataset(dataset_dir="example_data/custom")
+def test_load_local_dataset_default_split(example_data):
+    dataset = load_local_dataset(dataset_dir=example_data)
 
     assert len(dataset["train"]) == 8
     assert len(dataset["test"]) == 2
@@ -34,14 +34,14 @@ def test_load_local_dataset_default_split():
         dataset["train"][0]["sentence"]
         == "The outer rim has undergone some erosion due to subsequent impacts."
     )
-    assert dataset["train"][0]["audio"] == "example_data/custom/rec_0.wav"
+    assert dataset["train"][0]["audio"] == f"{example_data}/rec_0.wav"
 
     assert dataset["test"][-1]["sentence"] == "Riley and Buffy pursue in his car."
-    assert dataset["test"][-1]["audio"] == "example_data/custom/rec_9.wav"
+    assert dataset["test"][-1]["audio"] == f"{example_data}/rec_9.wav"
 
 
-def test_load_local_dataset_no_test():
-    dataset = load_local_dataset(dataset_dir="example_data/custom", train_split=1.0)
+def test_load_local_dataset_no_test(example_data):
+    dataset = load_local_dataset(dataset_dir=example_data, train_split=1.0)
 
     assert len(dataset["train"]) == 10
     assert len(dataset["test"]) == 0
