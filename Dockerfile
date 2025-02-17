@@ -16,5 +16,4 @@ RUN groupadd --gid 1000 appuser \
 
 USER appuser
 
-EXPOSE 8501
-ENTRYPOINT ["python", "demo/app.py"]
+ENTRYPOINT ["python", "src/speech_to_text_finetune/finetune_whisper.py"]
