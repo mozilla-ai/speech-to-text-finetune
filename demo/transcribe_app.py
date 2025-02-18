@@ -1,5 +1,6 @@
 from typing import Tuple
 import gradio as gr
+import spaces
 from transformers import pipeline, Pipeline
 
 from speech_to_text_finetune.config import LANGUAGES_NAME_TO_ID
@@ -28,6 +29,7 @@ def load_model(model_id: str, language: str) -> Tuple[Pipeline, str]:
         yield None, "⚠️ Please select a model and a language from the dropdown"
 
 
+@spaces.GPU
 def transcribe(pipe: Pipeline, audio: gr.Audio) -> str:
     text = pipe(audio)["text"]
     return text
