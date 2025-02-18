@@ -2,10 +2,14 @@ from typing import Tuple
 import gradio as gr
 from transformers import pipeline, Pipeline
 from speech_to_text_finetune.hf_utils import get_available_languages_in_cv
+import json
 
+with open("demo/languages_common_voice_17_0.json") as json_file:
+    languages_name_to_id = json.load(json_file)
 
-languages = get_available_languages_in_cv("mozilla-foundation/common_voice_17_0").keys()
+languages = languages_name_to_id.keys()
 model_ids = [
+    "kostissz/whisper-small-el",
     "kostissz/whisper-tiny-gl",
     "kostissz/whisper-tiny-el",
     "openai/whisper-tiny",
