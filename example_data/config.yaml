@@ -4,9 +4,17 @@ dataset_source: local
 language: English
 repo_name: default
 
+peft_hp:
+    load_in_8bit: True
+    rank: 32
+    lora_alpha: 64
+    lora_dropout: 0.05
+    bias: none
+
 training_hp:
     push_to_hub: False
     hub_private_repo: True
+    num_train_epochs: 2
     max_steps: 1
     per_device_train_batch_size: 64
     gradient_accumulation_steps: 1
@@ -16,7 +24,6 @@ training_hp:
     fp16: False  # If a GPU is available, set it to True for faster training & decreased memory usage -> bigger batches
     eval_strategy: steps
     per_device_eval_batch_size: 8
-    predict_with_generate: True
     generation_max_length: 225
     save_steps: 5
     logging_steps: 5
@@ -24,3 +31,5 @@ training_hp:
     save_total_limit: 1
     metric_for_best_model: wer
     greater_is_better: False
+    remove_unused_columns: False,  # the PeftModel forward doesn't have the signature of the wrapped model's forward
+    label_names: labels,  # same reason as above

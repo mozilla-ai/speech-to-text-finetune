@@ -124,7 +124,7 @@ class DataCollatorSpeechSeq2SeqWithPadding:
     """
 
     processor: WhisperProcessor
-    decoder_start_token_id: int
+    bos_token_id: str
 
     def __call__(
         self, features: List[Dict[str, Union[List[int], torch.Tensor]]]
@@ -148,7 +148,7 @@ class DataCollatorSpeechSeq2SeqWithPadding:
         )
 
         # if labels already have a bos token, remove it since its appended later
-        if (labels[:, 0] == self.decoder_start_token_id).all().cpu().item():
+        if (labels[:, 0] == self.bos_token_id).all().cpu().item():
             labels = labels[:, 1:]
 
         batch["labels"] = labels

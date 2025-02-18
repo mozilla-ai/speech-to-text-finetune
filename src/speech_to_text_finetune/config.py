@@ -16,6 +16,7 @@ class TrainingConfig(BaseModel):
 
     push_to_hub: bool
     hub_private_repo: bool
+    num_train_epochs: int
     max_steps: int
     per_device_train_batch_size: int
     gradient_accumulation_steps: int
@@ -25,7 +26,6 @@ class TrainingConfig(BaseModel):
     fp16: bool
     eval_strategy: str
     per_device_eval_batch_size: int
-    predict_with_generate: bool
     generation_max_length: int
     save_steps: int
     logging_steps: int
@@ -33,6 +33,16 @@ class TrainingConfig(BaseModel):
     save_total_limit: int
     metric_for_best_model: str
     greater_is_better: bool
+    remove_unused_columns: bool
+    label_names: list
+
+
+class PeftConfig(BaseModel):
+    load_in_8bit: bool
+    rank: int
+    lora_alpha: int
+    lora_dropout: float
+    bias: str
 
 
 class Config(BaseModel):
@@ -46,6 +56,7 @@ class Config(BaseModel):
         language (str): registered language string that is supported by the Common Voice dataset
         repo_name (str): used both for local dir and HF, "default" will create a name based on the model and language id
         training_hp (TrainingConfig): store selective hyperparameter values from Seq2SeqTrainingArguments
+        peft_hp (PeftConfig): store hyperparameter values used for PEFT + LoRA
     """
 
     model_id: str
@@ -54,6 +65,7 @@ class Config(BaseModel):
     language: str
     repo_name: str
     training_hp: TrainingConfig
+    peft_hp: PeftConfig
 
 
 LANGUAGES_NAME_TO_ID = {
