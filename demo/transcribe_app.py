@@ -8,10 +8,9 @@ from speech_to_text_finetune.hf_utils import (
 )
 
 
-with open("demo/languages_common_voice_17_0.json") as json_file:
-    languages_name_to_id = json.load(json_file)
+from speech_to_text_finetune.config import LANGUAGES_NAME_TO_ID
 
-languages = languages_name_to_id.keys()
+languages = LANGUAGES_NAME_TO_ID.keys()
 model_ids = [
     "openai/whisper-tiny",
     "openai/whisper-small",
