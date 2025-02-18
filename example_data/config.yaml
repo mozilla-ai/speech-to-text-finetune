@@ -1,13 +1,13 @@
 model_id: openai/whisper-tiny
-dataset_id: mozilla-foundation/common_voice_17_0
-dataset_source: HF
-language: Greek
+dataset_id: example_data/custom
+dataset_source: local
+language: English
 repo_name: default
 
 training_hp:
-    push_to_hub: True
+    push_to_hub: False
     hub_private_repo: True
-    max_steps: 20
+    max_steps: 1
     per_device_train_batch_size: 64
     gradient_accumulation_steps: 1
     learning_rate: 1e-5
