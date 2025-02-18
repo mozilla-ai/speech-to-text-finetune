@@ -24,5 +24,5 @@ repos:
     rev: v2.3.0
     hooks:
       - id: codespell
-        exclude: CODE_OF_CONDUCT.md src/speech_to_text_finetune/config.py
+        exclude: CODE_OF_CONDUCT.md
         args: [ "--skip=*.json" ]

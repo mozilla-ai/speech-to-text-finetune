@@ -104,7 +104,7 @@ LANGUAGES_NAME_TO_ID = {
     "Persian": "fa",
     "Fulah": "ff",
     "Finnish": "fi",
-    "Faroese": "fo",
+    "Faroese": "fo",  # codespell:ignore
     "French": "fr",
     "Pular Guinea": "fuf",
     "Frisian": "fy-NL",
@@ -174,7 +174,7 @@ LANGUAGES_NAME_TO_ID = {
     "Erzya": "myv",
     "Taiwanese (Minnan)": "nan-tw",
     "Norwegian Bokm\u00e5l": "nb-NO",
-    "IsiNdebele (North)": "nd",
+    "IsiNdebele (North)": "nd",  # codespell:ignore
     "Nepali": "ne-NP",
     "Eastern Huasteca Nahuatl": "nhe",
     "Western Sierra Puebla Nahuatl": "nhi",
@@ -224,7 +224,7 @@ LANGUAGES_NAME_TO_ID = {
     "Swahili": "sw",
     "Syriac": "syr",
     "Tamil": "ta",
-    "Telugu": "te",
+    "Telugu": "te",  # codespell:ignore
     "Tajik": "tg",
     "Thai": "th",
     "Tigrinya": "ti",
