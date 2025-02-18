@@ -7,7 +7,11 @@ from speech_to_text_finetune.hf_utils import (
     hf_model_exists,
 )
 
-languages = get_available_languages_in_cv("mozilla-foundation/common_voice_17_0").keys()
+
+with open("demo/languages_common_voice_17_0.json") as json_file:
+    languages_name_to_id = json.load(json_file)
+
+languages = languages_name_to_id.keys()
 model_ids = [
     "openai/whisper-tiny",
     "openai/whisper-small",
