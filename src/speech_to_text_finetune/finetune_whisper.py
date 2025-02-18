@@ -41,16 +41,18 @@ def run_finetuning(
         Tuple[Dict, Dict]: evaluation metrics from the baseline and the finetuned models
     """
     cfg = load_config(config_path)
-    hf_username = get_hf_username()
+
     language_id = LANGUAGES_NAME_TO_ID[cfg.language]
 
     if cfg.repo_name == "default":
         cfg.repo_name = f"{cfg.model_id.split('/')[1]}-{language_id}"
-    hf_repo_name = f"{hf_username}/{cfg.repo_name}"
     local_output_dir = f"./artifacts/{cfg.repo_name}"
 
     logger.info(f"Finetuning starts soon, results saved locally at {local_output_dir}")
+    hf_repo_name = ""
     if cfg.training_hp.push_to_hub:
+        hf_username = get_hf_username()
+        hf_repo_name = f"{hf_username}/{cfg.repo_name}"
         logger.info(
             f"Results will also be uploaded in HF at {hf_repo_name}. "
             f"Private repo is set to {cfg.training_hp.hub_private_repo}."
@@ -188,6 +190,4 @@ def compute_word_error_rate(
 
 
 if __name__ == "__main__":
-    run_finetuning(
-        config_path="example_data/config.yaml",
-    )
+    run_finetuning(config_path="example_data/config.yaml")
