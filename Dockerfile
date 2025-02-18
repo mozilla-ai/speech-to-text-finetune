@@ -9,10 +9,6 @@ COPY . /home/appuser/speech-to-text-finetune
 WORKDIR /home/appuser/speech-to-text-finetune
 
 USER root
-RUN pip3 install -e . && \
-    groupadd --gid 1000 appuser &&  \
-    useradd --uid 1000 --gid 1000 -ms /bin/bash appuser
+RUN pip3 install -e .
 
-USER appuser
-
-ENTRYPOINT ["bash"]
+ENTRYPOINT ["python", "src/speech_to_text_finetune/finetune_whisper.py"]
