@@ -1,5 +1,3 @@
-from functools import partial
-
 from transformers import (
     Seq2SeqTrainer,
     WhisperFeatureExtractor,
@@ -7,12 +5,10 @@ from transformers import (
     WhisperProcessor,
     WhisperForConditionalGeneration,
     Seq2SeqTrainingArguments,
-    EvalPrediction,
+    BitsAndBytesConfig,
 )
 import torch
 from typing import Dict, Tuple
-import evaluate
-from evaluate import EvaluationModule
 from loguru import logger
 
 from speech_to_text_finetune.config import load_config, LANGUAGES_NAME_TO_ID
@@ -26,6 +22,9 @@ from speech_to_text_finetune.hf_utils import (
     get_hf_username,
     upload_custom_hf_model_card,
 )
+from peft import prepare_model_for_kbit_training, LoraConfig, get_peft_model
+
+from speech_to_text_finetune.peft_utils import SavePeftModelCallback, evaluate_w_peft
 
 
 def run_finetuning(
@@ -78,18 +77,37 @@ def run_finetuning(
     processor = WhisperProcessor.from_pretrained(
         cfg.model_id, language=cfg.language, task="transcribe"
     )
-    model = WhisperForConditionalGeneration.from_pretrained(cfg.model_id)
 
-    model.generation_config.language = cfg.language.lower()
-    model.generation_config.task = "transcribe"
-    model.generation_config.forced_decoder_ids = None
+    model = WhisperForConditionalGeneration.from_pretrained(
+        cfg.model_id,
+        device_map="auto",
+        quantization_config=BitsAndBytesConfig(load_in_8bit=cfg.peft_hp.load_in_8bit),
+    )
+
+    model = prepare_model_for_kbit_training(model)
+
+    def make_inputs_require_grad(module, input, output):
+        output.requires_grad_(True)
+
+    model.model.encoder.conv1.register_forward_hook(make_inputs_require_grad)
+
+    model = get_peft_model(
+        model,
+        LoraConfig(
+            r=cfg.peft_hp.rank,
+            lora_alpha=cfg.peft_hp.lora_alpha,
+            target_modules=["q_proj", "v_proj"],
+            lora_dropout=cfg.peft_hp.lora_dropout,
+            bias=cfg.peft_hp.bias,
+        ),
+    )
+    model.print_trainable_parameters()
 
     logger.info("Preparing dataset...")
     dataset = process_dataset(dataset, feature_extractor, tokenizer)
 
     data_collator = DataCollatorSpeechSeq2SeqWithPadding(
-        processor=processor,
-        decoder_start_token_id=model.config.decoder_start_token_id,
+        processor=processor, bos_token_id=tokenizer.bos_token_id
     )
 
     training_args = Seq2SeqTrainingArguments(
@@ -99,28 +117,17 @@ def run_finetuning(
         **cfg.training_hp.model_dump(),
     )
 
-    metric = evaluate.load("wer")
-
     trainer = Seq2SeqTrainer(
         args=training_args,
         model=model,
         train_dataset=dataset["train"],
-        eval_dataset=dataset["test"],
         data_collator=data_collator,
-        compute_metrics=partial(
-            compute_word_error_rate, tokenizer=tokenizer, metric=metric
-        ),
         processing_class=processor.feature_extractor,
+        callbacks=[SavePeftModelCallback],
     )
 
+    # model.config.use_cache = False  # silence the warnings. Please re-enable for inference!
     processor.save_pretrained(training_args.output_dir)
-
-    logger.info(
-        f"Before finetuning, run evaluation on the baseline model {cfg.model_id} to easily compare performance"
-        f" before and after finetuning"
-    )
-    baseline_eval_results = trainer.evaluate()
-    logger.info(f"Baseline evaluation complete. Results:\n\t {baseline_eval_results}")
 
     logger.info(
         f"Start finetuning job on {dataset['train'].num_rows} audio samples. Monitor training metrics in real time in "
@@ -130,7 +137,13 @@ def run_finetuning(
     logger.info("Finetuning job complete.")
 
     logger.info(f"Start evaluation on {dataset['test'].num_rows} audio samples.")
-    eval_results = trainer.evaluate()
+    eval_results = evaluate_w_peft(
+        model=model,
+        test_dataset=dataset["test"],
+        data_collator=data_collator,
+        processor=processor,
+        language=cfg.language,
+    )
     logger.info(f"Evaluation complete. Results:\n\t {eval_results}")
 
     if cfg.training_hp.push_to_hub:
@@ -144,49 +157,11 @@ def run_finetuning(
             language=cfg.language,
             n_train_samples=dataset["train"].num_rows,
             n_eval_samples=dataset["test"].num_rows,
-            baseline_eval_results=baseline_eval_results,
+            baseline_eval_results={},
             ft_eval_results=eval_results,
         )
 
-    return baseline_eval_results, eval_results
-
-
-def compute_word_error_rate(
-    pred: EvalPrediction, tokenizer: WhisperTokenizer, metric: EvaluationModule
-) -> Dict:
-    """
-    Word Error Rate (wer) is a metric that measures the ratio of errors the ASR model makes given a transcript to the
-    total words spoken. Lower is better.
-    To identify an "error" we measure the difference between the ASR generated transcript and the
-    ground truth transcript using the following formula:
-    - S is the number of substitutions (number of words ASR swapped for different words from the ground truth)
-    - D is the number of deletions (number of words ASR skipped / didn't generate compared to the ground truth)
-    - I is the number of insertions (number of additional words ASR generated, not found in the ground truth)
-    - C is the number of correct words (number of words that are identical between ASR and ground truth scripts)
-
-    then: WER = (S+D+I) / (S+D+C)
-
-    Note 1: WER can be larger than 1.0, if the number of insertions I is larger than the number of correct words C.
-    Note 2: WER doesn't tell the whole story and is not fully representative of the quality of the ASR model.
-
-    Args:
-        pred (EvalPrediction): Transformers object that holds predicted tokens and ground truth labels
-        tokenizer (WhisperTokenizer): Whisper tokenizer used to decode tokens to strings
-        metric (EvaluationModule): module that calls the computing function for WER
-    Returns:
-        wer (Dict): computed WER metric
-    """
-    pred_ids = pred.predictions
-    label_ids = pred.label_ids
-
-    label_ids[label_ids == -100] = tokenizer.pad_token_id
-
-    pred_str = tokenizer.batch_decode(pred_ids, skip_special_tokens=True)
-    label_str = tokenizer.batch_decode(label_ids, skip_special_tokens=True)
-
-    wer = 100 * metric.compute(predictions=pred_str, references=label_str)
-
-    return {"wer": wer}
+    return eval_results
 
 
 if __name__ == "__main__":
