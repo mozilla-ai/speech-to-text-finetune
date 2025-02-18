@@ -3,7 +3,6 @@ from typing import Tuple
 import gradio as gr
 from transformers import pipeline, Pipeline
 from speech_to_text_finetune.hf_utils import (
-    get_available_languages_in_cv,
     hf_model_exists,
 )
 
