@@ -8,7 +8,7 @@ from huggingface_hub import (
     ModelCard,
     HfApi,
     ModelCardData,
-    EvalResult
+    EvalResult,
     hf_hub_download,
     repo_exists,
 )
