@@ -4,7 +4,7 @@ from loguru import logger
 import importlib.util
 from pathlib import Path
 from typing import Dict
-from huggingface_hub import ModelCard, HfApi, ModelCardData, hf_hub_download
+from huggingface_hub import ModelCard, HfApi, ModelCardData, hf_hub_download, EvalResult
 
 
 def get_hf_username() -> str:
@@ -75,33 +75,44 @@ def upload_custom_hf_model_card(
     Create and upload a custom Model Card (https://huggingface.co/docs/hub/model-cards) to the Hugging Face repo
     of the finetuned model that highlights the evaluation results before and after finetuning.
     """
-
     card_metadata = ModelCardData(
+        model_name=f"Finetuned {model_id} on {language}",
         base_model=model_id,
         datasets=[dataset_id],
         language=language_id,
-        metrics=["wer"],
+        license="apache-2.0",
+        library_name="transformers",
+        eval_results=[
+            EvalResult(
+                task_type="automatic-speech-recognition",
+                task_name="Speech-to-Text",
+                dataset_type="common_voice",
+                dataset_name=f"Common Voice ({language})",
+                metric_type="wer",
+                metric_value=round(ft_eval_results["eval_wer"], 3),
+            )
+        ],
     )
     content = f"""
-    ---
-    {card_metadata.to_yaml()}
-    ---
+---
+{card_metadata.to_yaml()}
+---
 
-    # Finetuned version of {model_id} on {n_train_samples} {language} training audio samples from {dataset_id}.
+# Finetuned {model_id} on {n_train_samples} {language} training audio samples from {dataset_id}.
 
-    This model was created from the Mozilla.ai Blueprint:
-    [speech-to-text-finetune](https://github.com/mozilla-ai/speech-to-text-finetune).
+This model was created from the Mozilla.ai Blueprint:
+[speech-to-text-finetune](https://github.com/mozilla-ai/speech-to-text-finetune).
 
-    ## Evaluation results on {n_eval_samples} audio samples of {language}
+## Evaluation results on {n_eval_samples} audio samples of {language}:
 
-    ### Baseline model (before finetuning) on {language}
-    - Word Error Rate: {round(baseline_eval_results["eval_wer"], 3)}
-    - Loss: {round(baseline_eval_results["eval_loss"], 3)}
+### Baseline model (before finetuning) on {language}
+- Word Error Rate: {round(baseline_eval_results["eval_wer"], 3)}
+- Loss: {round(baseline_eval_results["eval_loss"], 3)}
 
-    ### Finetuned model (after finetuning) on {language}
-    - Word Error Rate: {round(ft_eval_results["eval_wer"], 3)}
-    - Loss: {round(ft_eval_results["eval_loss"], 3)}
-    """
+### Finetuned model (after finetuning) on {language}
+- Word Error Rate: {round(ft_eval_results["eval_wer"], 3)}
+- Loss: {round(ft_eval_results["eval_loss"], 3)}
+"""
 
     card = ModelCard(content)
     card.push_to_hub(hf_repo_name)
