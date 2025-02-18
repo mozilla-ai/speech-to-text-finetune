@@ -2,7 +2,7 @@ FROM python:3.10-slim
 
 RUN pip3 install --no-cache-dir --upgrade pip &&  \
     apt-get update &&  \
-    apt-get install -y build-essential software-properties-common && \
+    apt-get install -y build-essential git software-properties-common && \
     apt-get clean
 
 COPY . /home/appuser/speech-to-text-finetune
