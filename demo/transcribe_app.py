@@ -59,7 +59,10 @@ def _load_hf_model(model_repo_id: str, language: str) -> Tuple[Pipeline | None, 
     ), f"✅ HF Model {model_repo_id} has been loaded."
 
 
-def load_model(model_id: str, language: str, local: bool) -> Tuple[Pipeline, str]:
+def load_model(
+    dropdown_model_id: str, user_model_id: str, language: str, local: bool
+) -> Tuple[Pipeline, str]:
+    model_id = user_model_id if user_model_id else dropdown_model_id
     if model_id and language:
         yield None, f"Loading {model_id}..."
         yield (
@@ -80,18 +83,26 @@ def setup_gradio_demo():
     with gr.Blocks() as demo:
         gr.Markdown(
             """ # 🗣️ Speech-to-Text Transcription
-        ### 1. Select a model and a language from the dropdowns.
-        ### 2. Load the model by clicking the Load model button.
-        ### 3. Record a message and click Transcribe to see the transcription.
-        """
+            ### 1. Select which model to load from one of the 3 options
+            a) Select a model from the dropdown menu\n
+            b) Copy-paste a HF model id in the format: user/model\n
+            c) Copy-paste the path to a local model and click the checkbox "Local model"
+            ### 2. Select a language from the dropdown menu.
+            ### 3. Load the model by clicking the Load model button.
+            ### 4. Record a message and click Transcribe to see the transcription.
+            """
         )
         ### Model & Language selection ###
         with gr.Row():
-            with gr.Column():
+            with gr.Column(scale=5):
                 dropdown_model = gr.Dropdown(
                     choices=model_ids, value=None, label="Select a model"
                 )
-            with gr.Column():
+            with gr.Column(scale=5):
+                user_model = gr.Textbox(
+                    label="Paste HF model id or local path to model directory"
+                )
+            with gr.Column(scale=1):
                 local_check = gr.Checkbox(label="Local model")
 
         selected_lang = gr.Dropdown(
@@ -111,7 +122,7 @@ def setup_gradio_demo():
         model = gr.State()
         load_model_button.click(
             fn=load_model,
-            inputs=[dropdown_model, selected_lang, local_check],
+            inputs=[dropdown_model, user_model, selected_lang, local_check],
             outputs=[model, model_loaded],
         )
 
