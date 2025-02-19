@@ -19,7 +19,21 @@
 
 This blueprint enables you to create your own [Speech-to-Text](https://en.wikipedia.org/wiki/Speech_recognition) / Automatic Speech Recognition (ASR) dataset and model to improve performance of standard STT models for your specific language & use-case. All of this can be done locally (even on your laptop!) ensuring no data leaves your machine, safeguarding your privacy. You can choose to finetune a model either on your own, local speech-to-text data or use the Common Voice dataset. Using Common Voice enables this blueprint to support an impressively wide variety of languages! More the exact list of languages supported please visit the Common Voice [website](https://commonvoice.mozilla.org/en/languages).
 
-📖 For more detailed guidance on using this project, please visit our [Docs here](https://mozilla-ai.github.io/speech-to-text-finetune/)
+## Example Results
+
+Input Speech audio: 
+
+Text output:
+
+| [openai/whisper-small](https://huggingface.co/openai/whisper-small) | [mozilla-ai/whisper-small-el](https://huggingface.co/kostissz/whisper-small-el) * | mozilla-ai/whisper-small-el-plus-local ** |
+| -------------| ------------------- | ----------------- |
+| -------------| ------------------- | ----------------- |
+
+\* Finetuned on the Greek set Common Voice 17.0
+
+\** Finetuned on the Greek set Common Voice 17.0 + 16 locally-recorded, custom samples
+
+### 📖 For more detailed guidance on using this project, please visit our [Docs here](https://mozilla-ai.github.io/speech-to-text-finetune/)
 
 📘 To explore this project further and discover other Blueprints, visit the [**Blueprints Hub**](https://developer-hub.mozilla.ai/).
 
@@ -29,9 +43,11 @@ This blueprint enables you to create your own [Speech-to-Text](https://en.wikipe
 - [Gradio](https://www.gradio.app/)
 - [Common Voice](https://commonvoice.mozilla.org)
 
+📖 For more detailed guidance on using this project, please visit our [Docs here](https://mozilla-ai.github.io/speech-to-text-finetune/)
+
 ## Quick-start
 
-Get started right away using one of the options below:
+Try out already finetuned models with our transcription app:
 
 | Google Colab | HuggingFace Spaces  | GitHub Codespaces |
 | -------------| ------------------- | ----------------- |
@@ -71,8 +87,6 @@ This blueprint consists of three independent, yet complementary, components:
 3. In your terminal, run the command `huggingface-cli login` and follow the instructions to log in to your account.
 4. Configure `config.yaml` with the model, Common Voice dataset repo id of HF and hyperparameters of your choice.
 5. Finetune a model by running: `python src/speech_to_text_finetune/finetune_whisper.py`
-
-**_Note_**: All scripts should be executed from the root directory of the repository.
 
 ## Troubleshooting
 
