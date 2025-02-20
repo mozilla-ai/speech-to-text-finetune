@@ -11,7 +11,6 @@ nav:
   - Future Features & Contributions: future-features-contributions.md
 
 theme:
-theme:
   icon:
     repo: fontawesome/brands/github
   name: material

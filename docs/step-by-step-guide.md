@@ -31,7 +31,7 @@ Start by initially testing the quality of the Speech-to-Text models available in
     ```
 
 2. Select or add the HF model id of your choice
-3. Record a sample of your voice and get the transcribed text back. You may find that there are sometimes innacuracies for your voice/accent/chosen language, indicating the model could benefit form finetuning on additional data.
+3. Record a sample of your voice and get the transcribed text back. You may find that there are sometimes inaccuracies for your voice/accent/chosen language, indicating the model could benefit form finetuning on additional data.
 
 ### Step 2 - Make your Local Dataset for STT finetuning
 
