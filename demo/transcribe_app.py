@@ -17,9 +17,6 @@ model_ids = [
     "openai/whisper-medium",
     "openai/whisper-large-v3",
     "openai/whisper-large-v3-turbo",
-    # Add here any other HF STT/ASR model id OR a local directory
-    # "kostissz/whisper-tiny-el",  # custom HF model example
-    # "artifacts/whisper-small-en",  # local model directory example
 ]
 
 
