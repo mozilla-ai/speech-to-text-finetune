@@ -23,7 +23,7 @@ This blueprint enables you to create your own [Speech-to-Text](https://en.wikipe
 
 ## Example Results
 
-Input Speech audio: 
+Input Speech audio:
 
 Text output:
 

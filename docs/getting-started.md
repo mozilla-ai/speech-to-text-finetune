@@ -34,7 +34,7 @@ Get started with Speech-to-text-finetune Blueprint using one of the options belo
       ```bash
       python demo/transcribe_app.py
       ```
-      
+
       To run the Finetuning job:
 
       ```bash
@@ -44,11 +44,11 @@ Get started with Speech-to-text-finetune Blueprint using one of the options belo
 === "💻 Local Installation"
 
       To install the project locally:
-      
+
       ```bash
       git clone https://github.com/mozilla-ai/speech-to-text-finetune.git
       cd speech-to-text-finetune
-      ``` 
+      ```
 
       install dependencies:
 
@@ -67,7 +67,7 @@ Get started with Speech-to-text-finetune Blueprint using one of the options belo
       ```bash
       python demo/transcribe_app.py
       ```
-      
+
       To run the Finetuning job:
 
       ```bash

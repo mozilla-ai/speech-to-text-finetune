@@ -22,9 +22,9 @@ Visit the **[Getting Started](getting-started.md)** page for the initial project
 The following guide is a suggested user-flow for getting the most out of this Blueprint
 
 ### Step 1 - Initial transcription testing
-Start by initially testing the quality of the Speech-to-Text models available in HuggingFace: 
+Start by initially testing the quality of the Speech-to-Text models available in HuggingFace:
 
-1. Simply execute: 
+1. Simply execute:
 
     ```bash
     python demo/transcribe_app.py
@@ -35,7 +35,7 @@ Start by initially testing the quality of the Speech-to-Text models available in
 
 ### Step 2 - Make your Local Dataset for STT finetuning
 
-1. Create your own, local dataset by running this command and following the instructions: 
+1. Create your own, local dataset by running this command and following the instructions:
 
     ```bash
     python src/speech_to_text_finetune/make_local_dataset_app.py
@@ -60,7 +60,7 @@ Start by initially testing the quality of the Speech-to-Text models available in
         ...
     ```
 
-2. Finetune a model by running: 
+2. Finetune a model by running:
 ```bash
 python src/speech_to_text_finetune/finetune_whisper.py
 ```
@@ -83,13 +83,13 @@ training_hp:
     hub_private_repo: True
     ...
 ```
-5. Finetune a model by running: 
+5. Finetune a model by running:
 ```bash
 python src/speech_to_text_finetune/finetune_whisper.py
 ```
 
 ### Step 5 - Evaluate transcription accuracy with your finetuned STT model
-1. Start the Transcription app: 
+1. Start the Transcription app:
  ```bash
 python demo/transcribe_app.py
 ```
