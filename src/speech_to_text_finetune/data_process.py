@@ -14,22 +14,32 @@ from transformers import (
 from datasets import load_dataset, DatasetDict, Audio, Dataset
 
 
-def load_common_voice(dataset_id: str, language_id: str) -> DatasetDict:
+def load_common_voice(
+    dataset_id: str,
+    language_id: str,
+    n_train_samples: int = -1,
+    n_test_samples: int = -1,
+) -> DatasetDict:
     """
     Load the default train+validation split used for finetuning and a test split used for evaluation.
     Args:
         dataset_id: official Common Voice dataset id from the mozilla-foundation organisation from Hugging Face
         language_id: a registered language identifier from Common Voice (most often in ISO-639 format)
-
+        n_train_samples (int): explicitly set how many samples to download and train+validate on.
+          If -1, then use all the train+validation data available
+        n_test_samples (int): explicitly set how many samples to download and evaluate on.
+          If -1, then use all the test data available
     Returns:
         DatasetDict: HF Dataset dictionary that consists of two distinct Datasets
     """
     common_voice = DatasetDict()
 
     common_voice["train"] = load_dataset(
-        dataset_id, language_id, split="train+validation"
+        dataset_id, language_id, split=f"train+validation[:{n_train_samples}]"
     )
-    common_voice["test"] = load_dataset(dataset_id, language_id, split="test")
+    common_voice["test"] = load_dataset(
+        dataset_id, language_id, split=f"test[:{n_test_samples}]"
+    )
     common_voice = common_voice.remove_columns(
         [
             "accent",
@@ -47,7 +57,12 @@ def load_common_voice(dataset_id: str, language_id: str) -> DatasetDict:
     return common_voice
 
 
-def load_local_dataset(dataset_dir: str, train_split: float = 0.8) -> DatasetDict:
+def load_local_dataset(
+    dataset_dir: str,
+    train_split: float = 0.8,
+    n_train_samples: int = -1,
+    n_test_samples: int = -1,
+) -> DatasetDict:
     """
     Load sentences and accompanied recorded audio files into a pandas DataFrame, then split into train/test and finally
     load it into two distinct train Dataset and test Dataset.
@@ -57,7 +72,10 @@ def load_local_dataset(dataset_dir: str, train_split: float = 0.8) -> DatasetDic
     Args:
         dataset_dir (str): path to the local dataset, expecting a text.csv and .wav files under the directory
         train_split (float): percentage split of the dataset to train+validation and test set
-
+        n_train_samples (int): explicitly set how many samples to use for train+validation.
+          If -1, then use all the train+validation data available
+        n_test_samples (int): explicitly set how many samples to use for evaluation.
+          If -1, then use all the test data available
     Returns:
         DatasetDict: HF Dataset dictionary in the same exact format as the Common Voice dataset from load_common_voice
     """
@@ -72,8 +90,8 @@ def load_local_dataset(dataset_dir: str, train_split: float = 0.8) -> DatasetDic
     train_index = round(len(dataframe) * train_split)
 
     my_data = DatasetDict()
-    my_data["train"] = Dataset.from_pandas(dataframe[:train_index])
-    my_data["test"] = Dataset.from_pandas(dataframe[train_index:])
+    my_data["train"] = Dataset.from_pandas(dataframe[:train_index])[:n_train_samples]
+    my_data["test"] = Dataset.from_pandas(dataframe[train_index:])[:n_test_samples]
 
     return my_data
 
