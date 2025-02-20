@@ -11,9 +11,12 @@ from speech_to_text_finetune.config import LANGUAGES_NAME_TO_ID
 
 languages = LANGUAGES_NAME_TO_ID.keys()
 model_ids = [
+    "",
     "openai/whisper-tiny",
     "openai/whisper-small",
     "openai/whisper-medium",
+    "openai/whisper-large-v3",
+    "openai/whisper-large-v3-turbo",
     # Add here any other HF STT/ASR model id OR a local directory
     # "kostissz/whisper-tiny-el",  # custom HF model example
     # "artifacts/whisper-small-en",  # local model directory example
@@ -60,18 +63,24 @@ def _load_hf_model(model_repo_id: str, language: str) -> Tuple[Pipeline | None, 
 
 
 def load_model(
-    dropdown_model_id: str, user_model_id: str, language: str, local: bool
+    language: str, dropdown_model_id: str, hf_model_id: str, local_model_id: str
 ) -> Tuple[Pipeline, str]:
-    model_id = user_model_id if user_model_id else dropdown_model_id
-    if model_id and language:
-        yield None, f"Loading {model_id}..."
-        yield (
-            _load_local_model(model_id, language)
-            if local
-            else _load_hf_model(model_id, language)
-        )
+    if dropdown_model_id and not hf_model_id and not local_model_id:
+        yield None, f"Loading {dropdown_model_id}..."
+        yield _load_hf_model(dropdown_model_id, language)
+    elif hf_model_id and not local_model_id and not dropdown_model_id:
+        yield None, f"Loading {hf_model_id}..."
+        yield _load_hf_model(hf_model_id, language)
+    elif local_model_id and not hf_model_id and not dropdown_model_id:
+        yield None, f"Loading {local_model_id}..."
+        yield _load_local_model(local_model_id, language)
     else:
-        yield None, "⚠️ Please select a model and a language from the dropdown"
+        yield (
+            None,
+            "️️⚠️ Please select or fill at least and only one of the three options above",
+        )
+    if not language:
+        yield None, "⚠️ Please select a language from the dropdown"
 
 
 def transcribe(pipe: Pipeline, audio: gr.Audio) -> str:
@@ -83,31 +92,34 @@ def setup_gradio_demo():
     with gr.Blocks() as demo:
         gr.Markdown(
             """ # 🗣️ Speech-to-Text Transcription
-            ### 1. Select which model to load from one of the 3 options
-            a) Select a model from the dropdown menu\n
-            b) Copy-paste a HF model id in the format: user/model\n
-            c) Copy-paste the path to a local model and click the checkbox "Local model"
-            ### 2. Select a language from the dropdown menu.
+            ### 1. Select a language from the dropdown menu.
+            ### 2. Select which model to load from one of the 3 options
             ### 3. Load the model by clicking the Load model button.
             ### 4. Record a message and click Transcribe to see the transcription.
             """
         )
-        ### Model & Language selection ###
-        with gr.Row():
-            with gr.Column(scale=5):
-                dropdown_model = gr.Dropdown(
-                    choices=model_ids, value=None, label="Select a model"
-                )
-            with gr.Column(scale=5):
-                user_model = gr.Textbox(
-                    label="Paste HF model id or local path to model directory"
-                )
-            with gr.Column(scale=1):
-                local_check = gr.Checkbox(label="Local model")
+        ### Language & Model selection ###
 
         selected_lang = gr.Dropdown(
             choices=list(languages), value=None, label="Select a language"
         )
+
+        with gr.Row():
+            with gr.Column():
+                dropdown_model = gr.Dropdown(
+                    choices=model_ids, label="Option 1: Select a model"
+                )
+            with gr.Column():
+                user_model = gr.Textbox(
+                    label="Option 2: Paste HF model id",
+                    placeholder="my-username/my-whisper-tiny",
+                )
+            with gr.Column():
+                local_model = gr.Textbox(
+                    label="Option 3: Paste local path to model directory",
+                    placeholder="artifacts/my-whisper-tiny",
+                )
+
         load_model_button = gr.Button("Load model")
         model_loaded = gr.Markdown()
 
@@ -122,7 +134,7 @@ def setup_gradio_demo():
         model = gr.State()
         load_model_button.click(
             fn=load_model,
-            inputs=[dropdown_model, user_model, selected_lang, local_check],
+            inputs=[selected_lang, dropdown_model, user_model, local_model],
             outputs=[model, model_loaded],
         )
 
