@@ -60,9 +60,16 @@ def run_finetuning(
 
     logger.info(f"Loading the {cfg.language} subset from the {cfg.dataset_id} dataset.")
     if cfg.dataset_source == "HF":
-        dataset = load_common_voice(cfg.dataset_id, language_id)
+        dataset = load_common_voice(
+            cfg.dataset_id, language_id, cfg.n_train_samples, cfg.n_test_samples
+        )
     elif cfg.dataset_source == "local":
-        dataset = load_local_dataset(cfg.dataset_id, train_split=0.8)
+        dataset = load_local_dataset(
+            cfg.dataset_id,
+            train_split=0.8,
+            n_train_samples=cfg.n_train_samples,
+            n_test_samples=cfg.n_test_samples,
+        )
     else:
         raise ValueError(f"Unknown dataset source {cfg.dataset_source}")
 
@@ -190,4 +197,4 @@ def compute_word_error_rate(
 
 
 if __name__ == "__main__":
-    run_finetuning(config_path="example_data/config.yaml")
+    run_finetuning(config_path="example_data/my_config.yaml")
