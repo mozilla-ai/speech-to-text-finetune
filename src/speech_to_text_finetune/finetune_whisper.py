@@ -197,4 +197,4 @@ def compute_word_error_rate(
 
 
 if __name__ == "__main__":
-    run_finetuning(config_path="example_data/my_config.yaml")
+    run_finetuning(config_path="example_data/config.yaml")
