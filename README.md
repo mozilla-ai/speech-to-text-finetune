@@ -42,8 +42,6 @@ Text output:
 ### Built with
 ![Python](https://img.shields.io/badge/Python-3.10%2B-blue) [![Hugging Face](https://img.shields.io/badge/Hugging%20Face-%F0%9F%A4%97-yellow)](https://huggingface.co/) [![Gradio](https://img.shields.io/badge/Gradio-%F0%9F%8E%A8-green)](https://www.gradio.app/) [![Common Voice](https://img.shields.io/badge/Common%20Voice-%F0%9F%8E%A4-orange)](https://commonvoice.mozilla.org)
 
-### 📖 For more detailed guidance on using this project, please visit our [Docs here](https://mozilla-ai.github.io/speech-to-text-finetune/)
-
 ## Quick-start
 
 | Finetune a STT model on Google Colab | Transcribe using a HuggingFace model | Explore all the functionality on GitHub Codespaces|
