@@ -104,3 +104,18 @@ To better understand how you can tailor this Blueprint to suit your specific nee
 ## 🤝 **Contributing to the Blueprint**
 
 Want to help improve or extend this Blueprint? Check out the **[Future Features & Contributions Guide](future-features-contributions.md)** to see how you can contribute your ideas, code, or feedback to make this Blueprint even better!
+
+## 📖 **Resources & References**
+
+If you are interested in learning more about this topic, you might find the following resources helpful:
+- [Fine-Tune Whisper For Multilingual ASR with 🤗 Transformers](https://huggingface.co/blog/fine-tune-whisper) (Blog post by HuggingFace which inspired the implementation of the Blueprint!)
+
+- [Automatic Speech Recognition Course from HuggingFace](https://huggingface.co/learn/audio-course/en/chapter5/introduction) (Series of Blog posts)
+
+- [Fine-Tuning ASR Models: Key Definitions, Mechanics, and Use Cases](https://www.gladia.io/blog/fine-tuning-asr-models) (Blog post by Gladia)
+
+- [Active Learning Approach for Fine-Tuning Pre-Trained ASR Model for a low-resourced Language](https://aclanthology.org/2023.icon-1.9.pdf) (Paper)
+
+- [Exploration of Whisper fine-tuning strategies for low-resource ASR](https://asmp-eurasipjournals.springeropen.com/articles/10.1186/s13636-024-00349-3) (Paper)
+
+- [Finetuning Pretrained Model with Embedding of Domain and Language Information for ASR of Very Low-Resource Settings](https://www.worldscientific.com/doi/abs/10.1142/S2717554523500248?download=true&journalCode=ijalp) (Paper)
