@@ -21,5 +21,6 @@ training_hp:
     save_steps: 1
     logging_steps: 1
     load_best_model_at_end: True
+    save_total_limit: 1
     metric_for_best_model: wer
     greater_is_better: False
