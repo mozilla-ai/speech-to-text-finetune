@@ -74,7 +74,7 @@ def load_model(
     else:
         yield (
             None,
-            "️️⚠️ Please select or fill at least and only one of the three options above",
+            "️️⚠️ Please select or fill at least and only one of the options above",
         )
     if not language:
         yield None, "⚠️ Please select a language from the dropdown"
