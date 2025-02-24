@@ -4,7 +4,13 @@ from loguru import logger
 import importlib.util
 from pathlib import Path
 from typing import Dict
-from huggingface_hub import ModelCard, HfApi, ModelCardData, hf_hub_download, EvalResult
+from huggingface_hub import (
+    ModelCard,
+    HfApi,
+    ModelCardData,
+    EvalResult,
+    hf_hub_download,
+)
 
 
 def get_hf_username() -> str:
