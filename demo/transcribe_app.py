@@ -112,7 +112,7 @@ def setup_gradio_demo():
             with gr.Column():
                 local_model = gr.Textbox(
                     label="Option 3: Paste local path to model directory",
-                    placeholder="artifacts/my-whisper-tiny",
+                    placeholder="artifacts/my-whisper-tiny  NOTE: Not available on HF Spaces",
                 )
 
         load_model_button = gr.Button("Load model")
