@@ -21,21 +21,7 @@ This blueprint enables you to create your own [Speech-to-Text](https://en.wikipe
 
 <img src="./images/speech-to-text-finetune-diagram.png" width="1200" alt="speech-to-text-finetune Diagram" />
 
-📘 To explore this project further and discover other Blueprints, visit the [**Blueprints Hub**](https://developer-hub.mozilla.ai/).
-
-## Example Results
-
-Input Speech audio:
-
-Text output:
-
-| [openai/whisper-small](https://huggingface.co/openai/whisper-small) | [mozilla-ai/whisper-small-el](https://huggingface.co/kostissz/whisper-small-el) * | mozilla-ai/whisper-small-el-plus-local ** |
-| -------------| ------------------- | ----------------- |
-| -------------| ------------------- | ----------------- |
-
-\* Finetuned on the Greek set Common Voice 17.0
-
-\** Finetuned on the Greek set Common Voice 17.0 + 16 locally-recorded, custom samples
+### 📘 To explore this project further and discover other Blueprints, visit the [**Blueprints Hub**](https://developer-hub.mozilla.ai/).
 
 ### 📖 For more detailed guidance on using this project, please visit our [Docs here](https://mozilla-ai.github.io/speech-to-text-finetune/)
 
