@@ -15,7 +15,7 @@ These docs are your companion to mastering the **Speech-to-Text Finetune Bluepri
 ---
 
 ### 🚀 **Get Started Quickly**
-#### _Start building your own Document-to-Podcast pipeline in minutes:_
+#### _Start transcribing with HuggingFace models or finetune your own custom STT models in minutes:_
 - **[Getting Started](getting-started.md):** Quick setup and installation instructions.
 
 ### 🔍 **Understand the System**
