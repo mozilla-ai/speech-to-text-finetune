@@ -40,6 +40,8 @@ This blueprint enables you to create your own [Speech-to-Text](https://en.wikipe
 
 ## Try it locally
 
+The same instructions apply for the GitHub Codespaces option.
+
 ### Setup
 
 1. Use a virtual environment and install dependencies: `pip install -e .` & [ffmpeg](https://ffmpeg.org) e.g. for Ubuntu: `sudo apt install ffmpeg`, for Mac: `brew install ffmpeg`
