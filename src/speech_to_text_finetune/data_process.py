@@ -27,9 +27,11 @@ def load_common_voice(dataset_id: str, language_id: str) -> DatasetDict:
     common_voice = DatasetDict()
 
     common_voice["train"] = load_dataset(
-        dataset_id, language_id, split="train+validation"
+        dataset_id, language_id, split="train+validation", trust_remote_code=True
     )
-    common_voice["test"] = load_dataset(dataset_id, language_id, split="test")
+    common_voice["test"] = load_dataset(
+        dataset_id, language_id, split="test", trust_remote_code=True
+    )
     common_voice = common_voice.remove_columns(
         [
             "accent",
