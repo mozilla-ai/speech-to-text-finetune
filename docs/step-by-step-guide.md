@@ -1,4 +1,4 @@
-# **Step-by-Step Guide: How the Document-to-Podcast Blueprint Works**
+# **Step-by-Step Guide: How the Speech-to-Text-Finetune Blueprint Works**
 
 This Blueprint enables you to fine-tune a Speech-to-Text (STT) model, using either your own data or the Common Voice dataset. This Step-by-Step guide you through the end-to-end process of finetuning an STT model based on your needs.
 
