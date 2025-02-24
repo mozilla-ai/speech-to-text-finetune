@@ -20,6 +20,7 @@ def load_common_voice(dataset_id: str, language_id: str) -> DatasetDict:
     Args:
         dataset_id: official Common Voice dataset id from the mozilla-foundation organisation from Hugging Face
         language_id: a registered language identifier from Common Voice (most often in ISO-639 format)
+
     Returns:
         DatasetDict: HF Dataset dictionary that consists of two distinct Datasets
     """
@@ -56,6 +57,7 @@ def load_local_dataset(dataset_dir: str, train_split: float = 0.8) -> DatasetDic
     Args:
         dataset_dir (str): path to the local dataset, expecting a text.csv and .wav files under the directory
         train_split (float): percentage split of the dataset to train+validation and test set
+
     Returns:
         DatasetDict: HF Dataset dictionary in the same exact format as the Common Voice dataset from load_common_voice
     """
