@@ -10,12 +10,7 @@ from huggingface_hub import (
     ModelCardData,
     EvalResult,
     hf_hub_download,
-    repo_exists,
 )
-
-
-def hf_model_exists(model_repo_id: str) -> bool:
-    return repo_exists(model_repo_id)
 
 
 def get_hf_username() -> str:

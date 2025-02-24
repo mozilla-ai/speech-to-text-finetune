@@ -2,9 +2,7 @@ from pathlib import Path
 from typing import Tuple
 import gradio as gr
 from transformers import pipeline, Pipeline
-from speech_to_text_finetune.hf_utils import (
-    hf_model_exists,
-)
+from huggingface_hub import repo_exists
 
 
 from speech_to_text_finetune.config import LANGUAGES_NAME_TO_ID
@@ -47,7 +45,7 @@ def _load_local_model(model_dir: str, language: str) -> Tuple[Pipeline | None, s
 
 
 def _load_hf_model(model_repo_id: str, language: str) -> Tuple[Pipeline | None, str]:
-    if not hf_model_exists(model_repo_id):
+    if not repo_exists(model_repo_id):
         return (
             None,
             f"⚠️ Couldn't find {model_repo_id} on Hugging Face. If its a private repo, make sure you are logged in locally.",
