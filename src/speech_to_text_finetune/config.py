@@ -16,7 +16,7 @@ class TrainingConfig(BaseModel):
 
     push_to_hub: bool
     hub_private_repo: bool
-    max_steps: int
+    num_train_epochs: int
     per_device_train_batch_size: int
     gradient_accumulation_steps: int
     learning_rate: float
