@@ -11,6 +11,8 @@ nav:
   - Future Features & Contributions: future-features-contributions.md
 
 theme:
+  icon:
+    repo: fontawesome/brands/github
   name: material
   palette:
     - scheme: default
@@ -39,7 +41,8 @@ markdown_extensions:
   - pymdownx.inlinehilite
   - pymdownx.snippets
   - pymdownx.superfences
-
+  - pymdownx.tabbed:
+      alternate_style: true
 plugins:
 - search
 - mkdocstrings:
