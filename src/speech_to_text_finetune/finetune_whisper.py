@@ -113,6 +113,8 @@ def run_finetuning(
         processing_class=processor.feature_extractor,
     )
 
+    feature_extractor.save_pretrained(training_args.output_dir)
+    tokenizer.save_pretrained(training_args.output_dir)
     processor.save_pretrained(training_args.output_dir)
 
     logger.info(
