@@ -18,14 +18,14 @@ jobs:
 
       - run: |
           cp demo/transcribe_app.py hf-space/app.py
-          cp demo/Dockerfile hf-space/Dockerfile
+          cp demo/requirements.txt hf-space/requirements.txt
 
       - run: |
           cd hf-space
           git config user.name 'github-actions[bot]'
           git config user.email 'github-actions[bot]@users.noreply.github.com'
           git add .
-          git commit -m "Sync with https://github.com/mozilla-ai/speech-to-text-finetune "
+          git commit -m "Sync with https://github.com/mozilla-ai/speech-to-text-finetune"
 
       - name: Push to Hugging Face
         run: |
