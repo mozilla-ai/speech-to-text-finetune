@@ -14,26 +14,37 @@ jobs:
         with:
           fetch-depth: 0
 
-      - run: git clone https://${{ secrets.HF_USERNAME }}:${{ secrets.HF_TOKEN }}@huggingface.co/spaces/mozilla-ai/transcribe hf-space
+      - name: Clone repo and rename
+        run: git clone https://${{ secrets.HF_USERNAME }}:${{ secrets.HF_TOKEN }}@huggingface.co/spaces/mozilla-ai/transcribe hf-space
 
-      - run: |
+      - name: Copy demo app and requirements
+        run: |
           cp demo/transcribe_app.py hf-space/app.py
           cp demo/requirements.txt hf-space/requirements.txt
 
-      - run: |
+      - name: Check if there are any changes
+        id: check_changes
+        run: |
           cd hf-space
           git config user.name 'github-actions[bot]'
           git config user.email 'github-actions[bot]@users.noreply.github.com'
           git add .
-          git commit -m "Sync with https://github.com/mozilla-ai/speech-to-text-finetune"
+          if git diff-index --quiet HEAD; then
+            echo "No changes to commit"
+            echo "changes=false" >> $GITHUB_ENV
+          else
+            echo "changes=true" >> $GITHUB_ENV
+          fi
 
-      - name: Push to Hugging Face
+      - name: Commit and push changes to Hugging Face
+        if: env.changes == 'true'
         run: |
           cd hf-space
+          git commit -m "Sync with https://github.com/mozilla-ai/speech-to-text-finetune"
           git push https://${{ secrets.HF_USERNAME }}:${{ secrets.HF_TOKEN }}@huggingface.co/spaces/mozilla-ai/transcribe main
 
       - name: Reboot Space
-        if: always()
+        if: steps.check_changes.outputs.changes == 'true'
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
