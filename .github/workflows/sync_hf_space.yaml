@@ -44,7 +44,7 @@ jobs:
           git push https://${{ secrets.HF_USERNAME }}:${{ secrets.HF_TOKEN }}@huggingface.co/spaces/mozilla-ai/transcribe main
 
       - name: Reboot Space
-        if: steps.check_changes.outputs.changes == 'true'
+        if: always()
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
