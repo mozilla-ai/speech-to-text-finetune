@@ -26,16 +26,15 @@ This blueprint enables you to create your own [Speech-to-Text](https://en.wikipe
 ## Example Results
 
 Input Speech audio:
+https://github.com/user-attachments/assets/6cff7788-ea9f-466a-b04f-07ca3e685cba
 
 Text output:
 
-| [openai/whisper-small](https://huggingface.co/openai/whisper-small) | [mozilla-ai/whisper-small-el](https://huggingface.co/kostissz/whisper-small-el) * | mozilla-ai/whisper-small-el-plus-local ** |
-| -------------| ------------------- | ----------------- |
-| -------------| ------------------- | ----------------- |
+| Ground Truth | [openai/whisper-small](https://huggingface.co/openai/whisper-small) | [mozilla-ai/whisper-small-gl](https://huggingface.co/mozilla-ai/whisper-small-gl) *| 
+| -------------| -------------| ------------------- |
+| Deseño con mirada feminista. Non será global, nin para todas as persoas, se non deseñamos con perspectiva de xénero | Desenho con mirada feminista, non será global, ni para todas as persoas enon desenhamos con perspectiva de seru. | Deseño co mirada feminista, non será global nin para todas as persoas senón deseñamos con perspectiva de xero. | 
 
-\* Finetuned on the Greek set Common Voice 17.0
-
-\** Finetuned on the Greek set Common Voice 17.0 + 16 locally-recorded, custom samples
+\* Finetuned on the Galician set Common Voice 17.0
 
 ### 📖 For more detailed guidance on using this project, please visit our [Docs here](https://mozilla-ai.github.io/speech-to-text-finetune/)
 
