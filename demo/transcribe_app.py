@@ -122,7 +122,11 @@ def setup_gradio_demo():
 
         ### Transcription ###
         audio_input = gr.Audio(
-            sources=["microphone"], type="filepath", label="Record a message"
+            sources=["upload", "microphone"],
+            type="filepath",
+            label="Record a message",
+            show_download_button=True,
+            max_length=30,
         )
         transcribe_button = gr.Button("Transcribe")
         transcribe_output = gr.Text(label="Output")
