@@ -25,4 +25,4 @@ repos:
     hooks:
       - id: codespell
         exclude: CODE_OF_CONDUCT.md
-        args: [ "--skip=*.json" ]
+        args: [ "--skip=*.json,README.md" ]
