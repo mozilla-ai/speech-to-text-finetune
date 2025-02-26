@@ -90,14 +90,7 @@ def transcribe(
 
 def setup_gradio_demo():
     with gr.Blocks() as demo:
-        gr.Markdown(
-            """ # 🗣️ Speech-to-Text Transcription
-            ### 1. Select a language from the dropdown menu.
-            ### 2. Select which model to load from one of the options below.
-            ### 3. Load the model by clicking the Load model button.
-            ### 4. Record a message and click Transcribe to see the transcription.
-            """
-        )
+        gr.Markdown("# 🗣️ Compare STT models")
         ### Language & Model selection ###
 
         selected_lang = gr.Dropdown(
@@ -143,7 +136,11 @@ def setup_gradio_demo():
 
         ### Transcription ###
         audio_input = gr.Audio(
-            sources=["microphone"], type="filepath", label="Record a message"
+            sources=["microphone", "upload"],
+            type="filepath",
+            label="Record a message",
+            show_download_button=True,
+            max_length=30,
         )
         transcribe_button = gr.Button("Transcribe")
         with gr.Row():
