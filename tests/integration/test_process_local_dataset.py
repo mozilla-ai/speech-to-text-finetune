@@ -3,14 +3,14 @@ from transformers import WhisperFeatureExtractor, WhisperTokenizer
 from speech_to_text_finetune.data_process import load_local_dataset, process_dataset
 
 
-def test_process_local_dataset(example_data):
+def test_process_local_dataset(example_custom_data):
     model_id = "openai/whisper-tiny"
 
     tokenizer = WhisperTokenizer.from_pretrained(
         model_id, language="English", task="transcribe"
     )
 
-    dataset = load_local_dataset(dataset_dir=example_data, train_split=0.5)
+    dataset = load_local_dataset(dataset_dir=example_custom_data, train_split=0.5)
 
     result = process_dataset(
         dataset,
