@@ -25,6 +25,22 @@ This blueprint enables you to create your own [Speech-to-Text](https://en.wikipe
 
 ### 📖 For more detailed guidance on using this project, please visit our [Docs here](https://mozilla-ai.github.io/speech-to-text-finetune/)
 
+## Example result on Galician
+
+Input Speech audio:
+
+https://github.com/user-attachments/assets/6cff7788-ea9f-466a-b04f-07ca3e685cba
+
+Text output:
+
+| Ground Truth | [openai/whisper-small](https://huggingface.co/openai/whisper-small) | [mozilla-ai/whisper-small-gl](https://huggingface.co/mozilla-ai/whisper-small-gl) *|
+| -------------| -------------| ------------------- |
+| Deseño con mirada feminista. Non será global, nin para todas as persoas, se non deseñamos con perspectiva de xénero | Desenho con mirada feminista, non será global, ni para todas as persoas enon desenhamos con perspectiva de seru. | Deseño co mirada feminista, non será global nin para todas as persoas senón deseñamos con perspectiva de xero. |
+
+\* Finetuned on the Galician set Common Voice 17.0
+
+### 📖 For more detailed guidance on using this project, please visit our [Docs here](https://mozilla-ai.github.io/speech-to-text-finetune/)
+
 ### Built with
 ![Python](https://img.shields.io/badge/Python-3.10%2B-blue) [![Hugging Face](https://img.shields.io/badge/Hugging%20Face-%F0%9F%A4%97-yellow)](https://huggingface.co/) [![Gradio](https://img.shields.io/badge/Gradio-%F0%9F%8E%A8-green)](https://www.gradio.app/) [![Common Voice](https://img.shields.io/badge/Common%20Voice-%F0%9F%8E%A4-orange)](https://commonvoice.mozilla.org)
 
