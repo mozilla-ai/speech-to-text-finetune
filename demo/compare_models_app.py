@@ -80,9 +80,12 @@ def load_model(
         yield None, "⚠️ Please select a language from the dropdown"
 
 
-def transcribe(pipe: Pipeline, audio: gr.Audio) -> str:
+def transcribe(
+    pipe: Pipeline, audio: gr.Audio, pipe_2: Pipeline | None
+) -> Tuple[str, str]:
     text = pipe(audio)["text"]
-    return text
+    text_2 = pipe_2(audio)["text"] if pipe_2 else ""
+    return text, text_2
 
 
 def setup_gradio_demo():
@@ -119,24 +122,53 @@ def setup_gradio_demo():
 
         load_model_button = gr.Button("Load model")
         model_loaded = gr.Markdown()
+        with gr.Row():
+            with gr.Column():
+                dropdown_model_2 = gr.Dropdown(
+                    choices=model_ids, label="Option 1: Select a model"
+                )
+            with gr.Column():
+                user_model_2 = gr.Textbox(
+                    label="Option 2: Paste HF model id",
+                    placeholder="my-username/my-whisper-tiny",
+                )
+            with gr.Column(visible=not is_hf_space):
+                local_model_2 = gr.Textbox(
+                    label="Option 3: Paste local path to model directory",
+                    placeholder="artifacts/my-whisper-tiny",
+                )
+
+        load_model_button_2 = gr.Button("Load model")
+        model_loaded_2 = gr.Markdown()
 
         ### Transcription ###
         audio_input = gr.Audio(
             sources=["microphone"], type="filepath", label="Record a message"
         )
         transcribe_button = gr.Button("Transcribe")
-        transcribe_output = gr.Text(label="Output")
+        with gr.Row():
+            with gr.Column():
+                transcribe_output = gr.Text(label="Output of primary model")
+            with gr.Column():
+                transcribe_output_2 = gr.Text(label="Output of comparison model")
 
         ### Event listeners ###
         model = gr.State()
+        model_2 = gr.State()
         load_model_button.click(
             fn=load_model,
             inputs=[selected_lang, dropdown_model, user_model, local_model],
             outputs=[model, model_loaded],
         )
-
+        load_model_button_2.click(
+            fn=load_model,
+            inputs=[selected_lang, dropdown_model_2, user_model_2, local_model_2],
+            outputs=[model_2, model_loaded_2],
+        )
         transcribe_button.click(
-            fn=transcribe, inputs=[model, audio_input], outputs=transcribe_output
+            fn=transcribe,
+            inputs=[model, audio_input, model_2],
+            outputs=[transcribe_output, transcribe_output_2],
         )
 
     demo.launch()

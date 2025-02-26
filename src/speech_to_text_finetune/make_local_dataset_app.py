@@ -54,8 +54,7 @@ def save_text_audio_to_file(
 
 
 def setup_gradio_demo():
-    custom_css = ".gradio-container { max-width: 450px; margin: 0 auto; }"
-    with gr.Blocks(css=custom_css) as demo:
+    with gr.Blocks() as demo:
         gr.Markdown(
             """
             # 🎤 Speech-to-text Dataset Recorder

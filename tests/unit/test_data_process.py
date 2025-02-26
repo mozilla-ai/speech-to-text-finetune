@@ -20,8 +20,12 @@ def test_load_common_voice(mock_load_dataset):
     assert "test" in result
     assert "gender" not in result["train"].features
 
-    mock_load_dataset.assert_any_call(dataset_id, language_id, split="train+validation")
-    mock_load_dataset.assert_any_call(dataset_id, language_id, split="test")
+    mock_load_dataset.assert_any_call(
+        dataset_id, language_id, split="train+validation", trust_remote_code=True
+    )
+    mock_load_dataset.assert_any_call(
+        dataset_id, language_id, split="test", trust_remote_code=True
+    )
 
 
 def test_load_local_dataset_default_split(example_data):
