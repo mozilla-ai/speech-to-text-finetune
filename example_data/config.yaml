@@ -3,6 +3,8 @@ dataset_id: example_data/custom
 dataset_source: local
 language: English
 repo_name: default
+n_train_samples: -1
+n_test_samples: -1
 
 training_hp:
     push_to_hub: False
