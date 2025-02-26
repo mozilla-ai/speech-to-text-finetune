@@ -21,7 +21,9 @@ This blueprint enables you to create your own [Speech-to-Text](https://en.wikipe
 
 <img src="./images/speech-to-text-finetune-diagram.png" width="1200" alt="speech-to-text-finetune Diagram" />
 
-📘 To explore this project further and discover other Blueprints, visit the [**Blueprints Hub**](https://developer-hub.mozilla.ai/).
+### 📘 To explore this project further and discover other Blueprints, visit the [**Blueprints Hub**](https://developer-hub.mozilla.ai/).
+
+### 📖 For more detailed guidance on using this project, please visit our [Docs here](https://mozilla-ai.github.io/speech-to-text-finetune/)
 
 ## Example Results
 
@@ -31,9 +33,9 @@ https://github.com/user-attachments/assets/6cff7788-ea9f-466a-b04f-07ca3e685cba
 
 Text output:
 
-| Ground Truth | [openai/whisper-small](https://huggingface.co/openai/whisper-small) | [mozilla-ai/whisper-small-gl](https://huggingface.co/mozilla-ai/whisper-small-gl) *| 
+| Ground Truth | [openai/whisper-small](https://huggingface.co/openai/whisper-small) | [mozilla-ai/whisper-small-gl](https://huggingface.co/mozilla-ai/whisper-small-gl) *|
 | -------------| -------------| ------------------- |
-| Deseño con mirada feminista. Non será global, nin para todas as persoas, se non deseñamos con perspectiva de xénero | Desenho con mirada feminista, non será global, ni para todas as persoas enon desenhamos con perspectiva de seru. | Deseño co mirada feminista, non será global nin para todas as persoas senón deseñamos con perspectiva de xero. | 
+| Deseño con mirada feminista. Non será global, nin para todas as persoas, se non deseñamos con perspectiva de xénero | Desenho con mirada feminista, non será global, ni para todas as persoas enon desenhamos con perspectiva de seru. | Deseño co mirada feminista, non será global nin para todas as persoas senón deseñamos con perspectiva de xero. |
 
 \* Finetuned on the Galician set Common Voice 17.0
 
@@ -44,12 +46,17 @@ Text output:
 
 ## Quick-start
 
+<div style="text-align: center;">
+
 | Finetune a STT model on Google Colab | Transcribe using a HuggingFace model | Explore all the functionality on GitHub Codespaces|
 |----------------------------------------|---------------------------------------------|---------------------------------------------------|
 | [![Try Finetuning on Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/mozilla-ai/speech-to-text-finetune/blob/main/demo/notebook.ipynb) | [![Try on Spaces](https://img.shields.io/badge/%F0%9F%A4%97%20Try%20on-Spaces-blue)](https://huggingface.co/spaces/mozilla-ai/transcribe) | [![Try on Codespaces](https://github.com/codespaces/badge.svg)](https://github.com/codespaces/new?hide_repo_select=true&ref=main&repo=mozilla-ai/speech-to-text-finetune&skip_quickstart=true&machine=standardLinux32gb) |
 
+</div>
 
 ## Try it locally
+
+The same instructions apply for the GitHub Codespaces option.
 
 ### Setup
 

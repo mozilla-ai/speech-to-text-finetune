@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 from typing import Tuple
 import gradio as gr
@@ -7,6 +8,7 @@ from huggingface_hub import repo_exists
 
 from speech_to_text_finetune.config import LANGUAGES_NAME_TO_ID
 
+is_hf_space = os.getenv("IS_HF_SPACE")
 languages = LANGUAGES_NAME_TO_ID.keys()
 model_ids = [
     "",
@@ -72,7 +74,7 @@ def load_model(
     else:
         yield (
             None,
-            "️️⚠️ Please select or fill at least and only one of the three options above",
+            "️️⚠️ Please select or fill at least and only one of the options above",
         )
     if not language:
         yield None, "⚠️ Please select a language from the dropdown"
@@ -88,7 +90,7 @@ def setup_gradio_demo():
         gr.Markdown(
             """ # 🗣️ Speech-to-Text Transcription
             ### 1. Select a language from the dropdown menu.
-            ### 2. Select which model to load from one of the 3 options
+            ### 2. Select which model to load from one of the options below.
             ### 3. Load the model by clicking the Load model button.
             ### 4. Record a message and click Transcribe to see the transcription.
             """
@@ -109,7 +111,7 @@ def setup_gradio_demo():
                     label="Option 2: Paste HF model id",
                     placeholder="my-username/my-whisper-tiny",
                 )
-            with gr.Column():
+            with gr.Column(visible=not is_hf_space):
                 local_model = gr.Textbox(
                     label="Option 3: Paste local path to model directory",
                     placeholder="artifacts/my-whisper-tiny",
