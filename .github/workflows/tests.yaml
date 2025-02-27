@@ -28,7 +28,9 @@ jobs:
           cache: "pip"
 
       - name: Install test dependencies
-        run: pip install -e '.[tests]'
+        run: |
+          sudo apt install ffmpeg
+          pip install -e '.[tests]'
 
       - name: Run Unit Tests
         run: pytest -v tests/unit

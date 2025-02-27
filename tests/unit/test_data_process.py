@@ -35,10 +35,10 @@ def test_load_local_dataset_default_split(example_custom_data):
     assert len(dataset["test"]) == 2
 
     assert dataset["train"][0]["sentence"] == "GO DO YOU HEAR"
-    assert dataset["train"][0]["audio"] == f"{example_data}/rec_0.wav"
+    assert dataset["train"][0]["audio"] == f"{example_custom_data}/rec_0.wav"
 
     assert dataset["test"][-1]["sentence"] == "DO YOU KNOW THE ASSASSIN ASKED MORREL"
-    assert dataset["test"][-1]["audio"] == f"{example_data}/rec_9.wav"
+    assert dataset["test"][-1]["audio"] == f"{example_custom_data}/rec_9.wav"
 
 
 def test_load_local_dataset_no_test(example_custom_data):
