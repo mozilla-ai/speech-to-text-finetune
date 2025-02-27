@@ -67,7 +67,11 @@ def load_local_dataset(dataset_dir: str, train_split: float = 0.8) -> DatasetDic
 
     dataframe = pd.read_csv(text_file)
     audio_files = sorted(
-        [f"{dataset_dir}/{f}" for f in os.listdir(dataset_dir) if f.endswith(".wav")]
+        [
+            f"{dataset_dir}/{f}"
+            for f in os.listdir(dataset_dir)
+            if f.endswith(".wav") or f.endswith(".mp3")
+        ],
     )
 
     dataframe["audio"] = audio_files
