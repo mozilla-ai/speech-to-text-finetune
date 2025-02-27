@@ -29,13 +29,14 @@ This blueprint enables you to create your own [Speech-to-Text](https://en.wikipe
 
 Input Speech audio:
 
-https://github.com/user-attachments/assets/6cff7788-ea9f-466a-b04f-07ca3e685cba
+
+https://github.com/user-attachments/assets/960f1b4f-04b9-4b8d-b988-d51504401e9a
 
 Text output:
 
 | Ground Truth | [openai/whisper-small](https://huggingface.co/openai/whisper-small) | [mozilla-ai/whisper-small-gl](https://huggingface.co/mozilla-ai/whisper-small-gl) *|
 | -------------| -------------| ------------------- |
-| Deseño con mirada feminista. Non será global, nin para todas as persoas, se non deseñamos con perspectiva de xénero | Desenho con mirada feminista, non será global, ni para todas as persoas enon desenhamos con perspectiva de seru. | Deseño co mirada feminista, non será global nin para todas as persoas senón deseñamos con perspectiva de xero. |
+| O Comité Económico e Social Europeo deu luz verde esta terza feira ao uso de galego, euskera e catalán nas súas sesións plenarias, segundo informou o Ministerio de Asuntos Exteriores nun comunicado no que se felicitou da decisión. | O Comité Económico Social Europeo de Uluz Verde está terza feira a Ousse de Gallego e Uskera e Catalan a súas asesións planarias, segundo informou o Ministerio de Asuntos Exteriores nun comunicado no que se felicitou da decisión. | O Comité Económico Social Europeo deu luz verde esta terza feira ao uso de galego e usquera e catalán nas súas sesións planarias, segundo informou o Ministerio de Asuntos Exteriores nun comunicado no que se felicitou da decisión. |
 
 \* Finetuned on the Galician set Common Voice 17.0
 
