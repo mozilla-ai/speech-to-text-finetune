@@ -79,7 +79,6 @@ def run_finetuning(
         logger.info(f"Loading local dataset from {cfg.dataset_id}.")
         dataset = load_local_dataset(
             dataset_dir=cfg.dataset_id,
-            train_split=0.8,
             n_train_samples=cfg.n_train_samples,
             n_test_samples=cfg.n_test_samples,
         )
@@ -110,7 +109,10 @@ def run_finetuning(
     if cfg.dataset_source != "processed":
         logger.info("Processing dataset...")
         dataset = process_dataset(
-            dataset, feature_extractor, tokenizer, proc_dataset_path
+            dataset=dataset,
+            feature_extractor=feature_extractor,
+            tokenizer=tokenizer,
+            proc_dataset_path=proc_dataset_path,
         )
 
     data_collator = DataCollatorSpeechSeq2SeqWithPadding(

@@ -63,7 +63,7 @@ def load_common_voice(
 
 def load_local_dataset(
     dataset_dir: str,
-    train_split: float = 0.8,
+    train_split: float | None = None,
     n_train_samples: int = -1,
     n_test_samples: int = -1,
 ) -> DatasetDict:
@@ -75,7 +75,8 @@ def load_local_dataset(
 
     Args:
         dataset_dir (str): path to the local dataset, expecting a text.csv and .wav files under the directory
-        train_split (float): percentage split of the dataset to train+validation and test set
+        train_split (float | None): percentage split of the dataset to train+validation and test set
+            If "None" is given, then the split will be made according to n_train_samples and n_test_samples
         n_train_samples (int): explicitly set how many samples to train+validate on.
           If -1, then use all the train+validation data available
         n_test_samples (int): explicitly set how many samples to evaluate on.
@@ -92,11 +93,15 @@ def load_local_dataset(
     )
 
     dataframe["audio"] = audio_files
-    train_index = round(len(dataframe) * train_split)
-
     my_data = DatasetDict()
-    my_data["train"] = Dataset.from_pandas(dataframe[:train_index])[:n_train_samples]
-    my_data["test"] = Dataset.from_pandas(dataframe[train_index:])[:n_test_samples]
+
+    if train_split:
+        train_index = round(len(dataframe) * train_split)
+        my_data["train"] = Dataset.from_pandas(dataframe[:train_index])
+        my_data["test"] = Dataset.from_pandas(dataframe[train_index:])
+    else:
+        my_data["train"] = Dataset.from_pandas(dataframe[:n_train_samples])
+        my_data["test"] = Dataset.from_pandas(dataframe[n_train_samples:n_test_samples])
 
     return my_data
 
