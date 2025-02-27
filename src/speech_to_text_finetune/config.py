@@ -49,6 +49,10 @@ class Config(BaseModel):
         save_processed_dataset (bool): whether to save a copy of the processed dataset to skip processing next time.
         language (str): registered language string that is supported by the Common Voice dataset
         repo_name (str): used both for local dir and HF, "default" will create a name based on the model and language id
+        n_train_samples (int): explicitly set how many samples to train+validate on.
+          If -1, then use all the train+validation data available
+        n_test_samples (int): explicitly set how many samples to evaluate on.
+          If -1, then use all the test data available
         training_hp (TrainingConfig): store selective hyperparameter values from Seq2SeqTrainingArguments
     """
 
@@ -58,6 +62,8 @@ class Config(BaseModel):
     save_processed_dataset: bool
     language: str
     repo_name: str
+    n_train_samples: int
+    n_test_samples: int
     training_hp: TrainingConfig
 
 

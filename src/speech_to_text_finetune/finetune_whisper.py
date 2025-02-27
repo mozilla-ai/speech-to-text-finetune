@@ -69,10 +69,20 @@ def run_finetuning(
     logger.info(f"Loading the {cfg.language} subset from the {cfg.dataset_id} dataset.")
     if cfg.dataset_source == "HF":
         logger.info(f"Loading HuggingFace dataset from {cfg.dataset_id}.")
-        dataset = load_common_voice(cfg.dataset_id, language_id)
+        dataset = load_common_voice(
+            dataset_id=cfg.dataset_id,
+            language_id=language_id,
+            n_train_samples=cfg.n_train_samples,
+            n_test_samples=cfg.n_test_samples,
+        )
     elif cfg.dataset_source == "local":
         logger.info(f"Loading local dataset from {cfg.dataset_id}.")
-        dataset = load_local_dataset(cfg.dataset_id, train_split=0.8)
+        dataset = load_local_dataset(
+            dataset_dir=cfg.dataset_id,
+            train_split=0.8,
+            n_train_samples=cfg.n_train_samples,
+            n_test_samples=cfg.n_test_samples,
+        )
     elif cfg.dataset_source == "processed":
         logger.info(f"Loading processed dataset from {cfg.dataset_id}.")
         dataset = load_from_disk(cfg.dataset_id)
