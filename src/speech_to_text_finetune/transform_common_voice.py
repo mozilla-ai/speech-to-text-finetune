@@ -1,7 +1,6 @@
 import argparse
 from pathlib import Path
 
-from pydub import AudioSegment
 import pandas as pd
 from loguru import logger
 
@@ -33,16 +32,16 @@ def transform_common_voice_to_local_dataset_format(
         audio_clip_path = Path(clips_dir) / row["path"]
 
         if sentence_id in sentence_map and Path(audio_clip_path).exists():
-            local_text_data.append(f'{i},"{sentence_map[sentence_id]}"')
-
-            # Convert .mp3 to .wav
-            mp3_audio = AudioSegment.from_mp3(audio_clip_path)
-            wav_path = output_dir / f"rec_{i}.wav"
-            mp3_audio.export(wav_path, format="wav")
+            # Set new index, string without any " characters, the original audio clip path and the sentence id
+            local_text_data.append(
+                f'{i},"{sentence_map[sentence_id].replace('"', "")}",{row["path"]},{sentence_id}'
+            )
+            # Move the audio clips to the new directory
+            Path(audio_clip_path).replace(output_dir / row["path"])
 
     text_csv_path = output_dir / "text.csv"
     with open(text_csv_path, "w") as f:
-        f.write("index,sentence\n")
+        f.write("index,sentence,path,sentence_id\n")
         f.write("\n".join(local_text_data))
 
     logger.info("Transformation complete!")
@@ -53,13 +52,12 @@ if __name__ == "__main__":
     parser.add_argument(
         "cv_data_dir",
         type=str,
-        help="Directory of Common Voice dataset, e.g. cv-corpus-20.0-delta-2024-12-06-el/cv-corpus-20.0-delta-2024-12-06/gl",
+        help="Directory of Common Voice dataset, e.g. cv-corpus-20.0-delta-2024-12-06-gl/cv-corpus-20.0-delta-2024-12-06/gl",
     )
     parser.add_argument(
         "output_dir",
         type=str,
         help="Directory to store the transformed Common Voice dataset",
     )
-
     args = parser.parse_args()
     transform_common_voice_to_local_dataset_format(args.cv_data_dir, args.output_dir)
