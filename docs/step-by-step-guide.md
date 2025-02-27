@@ -97,6 +97,18 @@ python demo/transcribe_app.py
 3. Record a sample of your voice and get the transcribed text back.
 4. You can easily switch between models with the same recorded sample to evaluate if the finetuned model has improved transcription accuracy.
 
+
+### Step 6 - Compare transcription performance between two models
+
+1. Start the Model Comparison app:
+ ```bash
+python demo/model_comparison_app.py
+```
+2. Select a baseline model, for example the model you used as a base for finetuning.
+3. Select a comparison model, for example your finetuned model.
+4. Record a sample of your voice and get two transcriptions back side-by-side for an easier manual evaluation.
+
+
 ## 🎨 **Customizing the Blueprint**
 
 To better understand how you can tailor this Blueprint to suit your specific needs, please visit the **[Customization Guide](customization.md)**.
