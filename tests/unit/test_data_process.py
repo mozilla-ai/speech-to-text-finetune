@@ -34,13 +34,10 @@ def test_load_local_dataset_default_split(example_data):
     assert len(dataset["train"]) == 8
     assert len(dataset["test"]) == 2
 
-    assert (
-        dataset["train"][0]["sentence"]
-        == "The outer rim has undergone some erosion due to subsequent impacts."
-    )
+    assert dataset["train"][0]["sentence"] == "GO DO YOU HEAR"
     assert dataset["train"][0]["audio"] == f"{example_data}/rec_0.wav"
 
-    assert dataset["test"][-1]["sentence"] == "Riley and Buffy pursue in his car."
+    assert dataset["test"][-1]["sentence"] == "DO YOU KNOW THE ASSASSIN ASKED MORREL"
     assert dataset["test"][-1]["audio"] == f"{example_data}/rec_9.wav"
 
 
