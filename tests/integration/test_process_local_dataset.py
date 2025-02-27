@@ -16,6 +16,7 @@ def test_process_local_dataset(example_custom_data):
         dataset,
         feature_extractor=WhisperFeatureExtractor.from_pretrained(model_id),
         tokenizer=tokenizer,
+        proc_dataset_path=None,
     )
 
     assert len(dataset["train"]) == len(result["train"])
