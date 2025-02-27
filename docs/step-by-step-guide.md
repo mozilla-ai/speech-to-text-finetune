@@ -65,6 +65,9 @@ Start by initially testing the quality of the Speech-to-Text models available in
 python src/speech_to_text_finetune/finetune_whisper.py
 ```
 
+> [!TIP]
+> You can prematurely and gracefully stop the finetuning job by pressing CTRL+C. The rest of the code (evaluation, uploading the model) will execute as normal.
+
 ### Step 4 - (Optional) Creating a finetuned STT model using CommonVoice data
 *Note: A Hugging Face account is required!*
 
