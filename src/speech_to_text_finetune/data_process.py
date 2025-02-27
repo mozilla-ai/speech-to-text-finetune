@@ -10,7 +10,7 @@ from transformers import (
     WhisperTokenizer,
     WhisperProcessor,
 )
-
+from loguru import logger
 from datasets import load_dataset, DatasetDict, Audio, Dataset
 
 
@@ -84,9 +84,11 @@ def process_dataset(
     dataset: DatasetDict,
     feature_extractor: WhisperFeatureExtractor,
     tokenizer: WhisperTokenizer,
+    proc_dataset_path: str | None,
 ) -> DatasetDict:
     """
     Process dataset to the expected format by a Whisper model.
+    If proc_dataset_path is not None, then save the processed dataset at that directory.
     """
     # Create a new column that consists of the resampled audio samples in the right sample rate for whisper
     dataset = dataset.cast_column("audio", Audio(sampling_rate=16000))
@@ -97,6 +99,12 @@ def process_dataset(
         remove_columns=dataset.column_names["train"],
         num_proc=os.cpu_count(),
     )
+
+    if proc_dataset_path:
+        dataset.save_to_disk(proc_dataset_path)
+        logger.info(
+            f"Processed dataset saved at {proc_dataset_path}. Make sure to use this path next time you want to use this dataset to skip processing it again."
+        )
     return dataset
 
 
