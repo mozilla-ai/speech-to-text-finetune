@@ -1,5 +1,6 @@
 from functools import partial
 
+from datasets import load_from_disk
 from transformers import (
     Seq2SeqTrainer,
     WhisperFeatureExtractor,
@@ -46,9 +47,16 @@ def run_finetuning(
 
     if cfg.repo_name == "default":
         cfg.repo_name = f"{cfg.model_id.split('/')[1]}-{language_id}"
-    local_output_dir = f"./artifacts/{cfg.repo_name}"
+    local_model_output_dir = f"./artifacts/{cfg.repo_name}"
+    proc_dataset_path = (
+        f"./artifacts/{language_id}_{cfg.dataset_id.replace('/', '_')}"
+        if cfg.save_processed_dataset
+        else None
+    )
 
-    logger.info(f"Finetuning starts soon, results saved locally at {local_output_dir}")
+    logger.info(
+        f"Finetuning starts soon, results saved locally at {local_model_output_dir}"
+    )
     hf_repo_name = ""
     if cfg.training_hp.push_to_hub:
         hf_username = get_hf_username()
@@ -60,9 +68,14 @@ def run_finetuning(
 
     logger.info(f"Loading the {cfg.language} subset from the {cfg.dataset_id} dataset.")
     if cfg.dataset_source == "HF":
+        logger.info(f"Loading HuggingFace dataset from {cfg.dataset_id}.")
         dataset = load_common_voice(cfg.dataset_id, language_id)
     elif cfg.dataset_source == "local":
+        logger.info(f"Loading local dataset from {cfg.dataset_id}.")
         dataset = load_local_dataset(cfg.dataset_id, train_split=0.8)
+    elif cfg.dataset_source == "processed":
+        logger.info(f"Loading processed dataset from {cfg.dataset_id}.")
+        dataset = load_from_disk(cfg.dataset_id)
     else:
         raise ValueError(f"Unknown dataset source {cfg.dataset_source}")
 
@@ -84,8 +97,11 @@ def run_finetuning(
     model.generation_config.task = "transcribe"
     model.generation_config.forced_decoder_ids = None
 
-    logger.info("Preparing dataset...")
-    dataset = process_dataset(dataset, feature_extractor, tokenizer)
+    if cfg.dataset_source != "processed":
+        logger.info("Processing dataset...")
+        dataset = process_dataset(
+            dataset, feature_extractor, tokenizer, proc_dataset_path
+        )
 
     data_collator = DataCollatorSpeechSeq2SeqWithPadding(
         processor=processor,
@@ -93,7 +109,7 @@ def run_finetuning(
     )
 
     training_args = Seq2SeqTrainingArguments(
-        output_dir=local_output_dir,
+        output_dir=local_model_output_dir,
         hub_model_id=hf_repo_name,
         report_to=["tensorboard"],
         **cfg.training_hp.model_dump(),
@@ -150,6 +166,11 @@ def run_finetuning(
             ft_eval_results=eval_results,
         )
 
+    logger.info(f"Find your final, best performing model at {local_model_output_dir}")
+    if proc_dataset_path:
+        logger.info(
+            f"Find your processed dataset to reuse next time you train with this dataset at {proc_dataset_path}"
+        )
     return baseline_eval_results, eval_results
 
 
