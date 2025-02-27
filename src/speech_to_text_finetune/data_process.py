@@ -35,15 +35,15 @@ def load_common_voice(
     common_voice["train"] = load_dataset(
         dataset_id,
         language_id,
-        split=f"train+validation[:{n_train_samples}]",
+        split="train+validation",
         trust_remote_code=True,
-    )
+    ).select(range(n_train_samples))
     common_voice["test"] = load_dataset(
         dataset_id,
         language_id,
-        split=f"test[:{n_test_samples}]",
+        split="test",
         trust_remote_code=True,
-    )
+    ).select(range(n_test_samples))
     common_voice = common_voice.remove_columns(
         [
             "accent",
