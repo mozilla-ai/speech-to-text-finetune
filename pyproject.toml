@@ -15,6 +15,7 @@ dependencies = [
   "jiwer",
   "gradio",
   "loguru",
+  "pydub",
   "tensorboard",
   "transformers",
 ]
