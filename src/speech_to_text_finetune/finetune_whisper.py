@@ -79,8 +79,7 @@ def run_finetuning(
         logger.info(f"Loading local dataset from {cfg.dataset_id}.")
         dataset = load_local_dataset(
             dataset_dir=cfg.dataset_id,
-            n_train_samples=cfg.n_train_samples,
-            n_test_samples=cfg.n_test_samples,
+            train_split=0.8,
         )
     elif cfg.dataset_source == "processed":
         logger.info(f"Loading processed dataset from {cfg.dataset_id}.")
