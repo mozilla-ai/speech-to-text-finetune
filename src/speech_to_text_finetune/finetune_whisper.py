@@ -72,8 +72,6 @@ def run_finetuning(
         dataset = load_common_voice(
             dataset_id=cfg.dataset_id,
             language_id=language_id,
-            n_train_samples=cfg.n_train_samples,
-            n_test_samples=cfg.n_test_samples,
         )
     elif cfg.dataset_source == "local":
         logger.info(f"Loading local dataset from {cfg.dataset_id}.")
@@ -86,6 +84,17 @@ def run_finetuning(
         dataset = load_from_disk(cfg.dataset_id)
     else:
         raise ValueError(f"Unknown dataset source {cfg.dataset_source}")
+
+    dataset["train"] = (
+        dataset["train"].select(range(cfg.n_train_samples))
+        if cfg.n_train_samples != -1
+        else dataset["train"]
+    )
+    dataset["test"] = (
+        dataset["test"].select(range(cfg.n_test_samples))
+        if cfg.n_test_samples != -1
+        else dataset["test"]
+    )
 
     device = torch.cuda.get_device_name(0) if torch.cuda.is_available() else "CPU"
 
