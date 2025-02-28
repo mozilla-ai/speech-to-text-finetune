@@ -53,6 +53,7 @@ def _load_hf_model(model_repo_id: str) -> Tuple[Pipeline | None, str]:
     return pipeline(
         "automatic-speech-recognition",
         model=model_repo_id,
+        device=0
     ), f"✅ HF Model {model_repo_id} has been loaded."
 
 
