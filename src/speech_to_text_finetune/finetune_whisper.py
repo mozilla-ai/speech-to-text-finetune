@@ -66,6 +66,17 @@ def run_finetuning(
     else:
         raise ValueError(f"Unknown dataset source {cfg.dataset_source}")
 
+    dataset["train"] = (
+        dataset["train"].select(range(cfg.n_train_samples))
+        if cfg.n_train_samples != -1
+        else dataset["train"]
+    )
+    dataset["test"] = (
+        dataset["test"].select(range(cfg.n_test_samples))
+        if cfg.n_test_samples != -1
+        else dataset["test"]
+    )
+
     device = torch.cuda.get_device_name(0) if torch.cuda.is_available() else "CPU"
 
     logger.info(
