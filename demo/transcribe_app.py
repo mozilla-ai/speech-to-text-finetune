@@ -50,7 +50,6 @@ def transcribe(
     dropdown_model_id: str,
     hf_model_id: str,
     local_model_id: str,
-    pipe: Pipeline,
     audio: gr.Audio,
 ) -> str:
     if dropdown_model_id and not hf_model_id and not local_model_id:
