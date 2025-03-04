@@ -69,10 +69,10 @@ The same instructions apply for the GitHub Codespaces option.
 2. Add the HF model id of your choice
 3. Record a sample of your voice and get the transcribe text back
 
-### Making your own STT model using Local Data
+### Making your own STT model using Custom Data
 
-1. Create your own, local dataset by running this command and following the instructions: `python src/speech_to_text_finetune/make_local_dataset_app.py`
-2. Configure `config.yaml` with the model, local data directory and hyperparameters of your choice. Note that if you select `push_to_hub: True` you need to have an HF account and log in locally.
+1. Create your own, local, custom dataset by running this command and following the instructions: `python src/speech_to_text_finetune/make_custom_dataset_app.py`
+2. Configure `config.yaml` with the model, custom data directory and hyperparameters of your choice. Note that if you select `push_to_hub: True` you need to have an HF account and log in locally.
 3. Finetune a model by running: `python src/speech_to_text_finetune/finetune_whisper.py`
 4. Test the finetuned model in the transcription app: `python demo/transcribe_app.py`
 

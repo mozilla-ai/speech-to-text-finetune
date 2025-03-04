@@ -5,7 +5,7 @@ import gradio
 import pandas as pd
 import pytest
 
-from speech_to_text_finetune.make_local_dataset_app import save_text_audio_to_file
+from speech_to_text_finetune.make_custom_dataset_app import save_text_audio_to_file
 
 
 @pytest.fixture
