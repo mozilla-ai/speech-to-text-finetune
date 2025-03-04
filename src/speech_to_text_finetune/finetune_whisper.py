@@ -64,7 +64,7 @@ def run_finetuning(
         dataset = load_common_voice(cfg.dataset_id, language_id)
     elif cfg.dataset_source == "local_cv":
         dataset = load_local_common_voice(cfg.dataset_id, train_split=0.8)
-    elif cfg.dataset_source == "custom":
+    elif cfg.dataset_source == "local":
         dataset = load_local_dataset(cfg.dataset_id, train_split=0.8)
     else:
         raise ValueError(f"Unknown dataset source {cfg.dataset_source}")
