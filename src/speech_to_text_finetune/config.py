@@ -39,17 +39,17 @@ class Config(BaseModel):
     """
     Store configuration used for finetuning
 
-    Args:
-        model_id (str): HF model id of a Whisper model used for finetuning
-        dataset_id (str): HF dataset id of a Common Voice dataset version, ideally from the mozilla-foundation repo
-        dataset_source (str): can be "HF" or "local", to determine from where to fetch the dataset
-        language (str): registered language string that is supported by the Common Voice dataset
-        repo_name (str): used both for local dir and HF, "default" will create a name based on the model and language id
-        n_train_samples (int): explicitly set how many samples to train+validate on.
+    Attributes:
+        model_id: HF model id of a Whisper model used for finetuning
+        dataset_id: HF dataset id of a Common Voice dataset version, ideally from the mozilla-foundation repo
+        dataset_source: can be "HF" or "local", to determine from where to fetch the dataset
+        language: registered language string that is supported by the Common Voice dataset
+        repo_name: used both for local dir and HF, "default" will create a name based on the model and language id
+        n_train_samples: explicitly set how many samples to train+validate on.
           If -1, then use all the train+validation data available
-        n_test_samples (int): explicitly set how many samples to evaluate on.
+        n_test_samples: explicitly set how many samples to evaluate on.
           If -1, then use all the test data available
-        training_hp (TrainingConfig): store selective hyperparameter values from Seq2SeqTrainingArguments
+        training_hp: store selective hyperparameter values from Seq2SeqTrainingArguments
     """
 
     model_id: str
