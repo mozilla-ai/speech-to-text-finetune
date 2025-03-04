@@ -67,33 +67,35 @@ def load_local_common_voice(cv_data_dir: str, train_split: float = 0.8) -> Datas
     other_df = pd.read_csv(cv_data_dir / "other.tsv", sep="\t")
 
     # Map sentence_id to sentences to then use the sentence_id to pull the correct audio path from other.tsv
-    sentence_map = {
-        row["sentence_id"]: row["sentence"] for _, row in validated_df.iterrows()
-    }
+    sentence_map = dict(zip(validated_df["sentence_id"], validated_df["sentence"]))
 
-    local_dataset = []
+    # Filter out the rows that don't have a corresponding sentence_id in the sentence_map
+    other_df = other_df[other_df["sentence_id"].isin(sentence_map)]
 
-    for i, row in other_df.iterrows():
-        sentence_id = row["sentence_id"]
-        audio_clip_path = cv_data_dir / "clips" / row["path"]
+    # Write the full audio clip path
+    other_df["audio_clip_path"] = other_df["path"].apply(
+        lambda p: cv_data_dir / "clips" / p
+    )
 
-        if sentence_id in sentence_map and Path(audio_clip_path).exists():
-            # Set rows: index, string without any " characters, the original audio clip path and the sentence id
-            local_dataset.append(
-                {
-                    "index": i,
-                    "sentence": sentence_map[sentence_id].replace('"', ""),
-                    "audio": str(audio_clip_path),
-                    "sentence_id": sentence_id,
-                }
-            )
+    dataset_df = pd.DataFrame(
+        {
+            "index": other_df.index,
+            "sentence": other_df["sentence_id"].map(
+                lambda i: sentence_map[i].replace('"', "")
+            ),  # remove " characters
+            "audio": other_df["audio_clip_path"].astype(str),
+            "sentence_id": other_df["sentence_id"],
+        }
+    )
 
-    dataset_df = pd.DataFrame(local_dataset)
     train_index = round(len(dataset_df) * train_split)
 
-    dataset = DatasetDict()
-    dataset["train"] = Dataset.from_pandas(dataset_df[:train_index])
-    dataset["test"] = Dataset.from_pandas(dataset_df[train_index:])
+    dataset = DatasetDict(
+        {
+            "train": Dataset.from_pandas(dataset_df.iloc[:train_index]),
+            "test": Dataset.from_pandas(dataset_df.iloc[train_index:]),
+        }
+    )
 
     return dataset
 
