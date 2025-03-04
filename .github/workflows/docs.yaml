@@ -41,7 +41,7 @@ jobs:
 
       - name: Build docs
         if: github.event_name == 'pull_request'
-        run: mkdocs build -s
+        run: mkdocs build
 
       - name: Publish docs
         if: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch' }}
