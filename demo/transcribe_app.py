@@ -45,7 +45,7 @@ def _load_hf_model(model_repo_id: str) -> Pipeline:
     )
 
 
-@spaces.GPU
+@spaces.GPU(duration=30)
 def transcribe(
     dropdown_model_id: str,
     hf_model_id: str,
