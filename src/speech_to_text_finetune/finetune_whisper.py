@@ -21,6 +21,7 @@ from speech_to_text_finetune.data_process import (
     load_local_dataset,
     DataCollatorSpeechSeq2SeqWithPadding,
     process_dataset,
+    load_local_common_voice,
 )
 from speech_to_text_finetune.hf_utils import (
     get_hf_username,
@@ -61,7 +62,9 @@ def run_finetuning(
     logger.info(f"Loading the {cfg.language} subset from the {cfg.dataset_id} dataset.")
     if cfg.dataset_source == "HF":
         dataset = load_common_voice(cfg.dataset_id, language_id)
-    elif cfg.dataset_source == "local":
+    elif cfg.dataset_source == "local_cv":
+        dataset = load_local_common_voice(cfg.dataset_id, train_split=0.8)
+    elif cfg.dataset_source == "custom":
         dataset = load_local_dataset(cfg.dataset_id, train_split=0.8)
     else:
         raise ValueError(f"Unknown dataset source {cfg.dataset_source}")
