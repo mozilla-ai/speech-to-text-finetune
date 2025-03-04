@@ -1,7 +1,11 @@
 import pytest
 from unittest.mock import patch, MagicMock
 from datasets import DatasetDict, Dataset
-from speech_to_text_finetune.data_process import load_common_voice, load_local_dataset
+from speech_to_text_finetune.data_process import (
+    load_common_voice,
+    load_local_dataset,
+    load_local_common_voice,
+)
 
 
 @pytest.fixture
@@ -25,6 +29,27 @@ def test_load_common_voice(mock_load_dataset):
     )
     mock_load_dataset.assert_any_call(
         dataset_id, language_id, split="test", trust_remote_code=True
+    )
+
+
+def test_load_local_common_voice(example_common_voice_data):
+    dataset = load_local_common_voice(
+        cv_data_dir=example_common_voice_data, train_split=0.5
+    )
+
+    assert len(dataset["train"]) == 1
+    assert len(dataset["test"]) == 1
+
+    assert dataset["train"][0]["sentence"] == "Example sentence"
+    assert (
+        dataset["train"][0]["audio"]
+        == f"{example_common_voice_data}/clips/an_example.mp3"
+    )
+
+    assert dataset["test"][-1]["sentence"] == "Another example sentence"
+    assert (
+        dataset["test"][-1]["audio"]
+        == f"{example_common_voice_data}/clips/an_example_2.mp3"
     )
 
 
