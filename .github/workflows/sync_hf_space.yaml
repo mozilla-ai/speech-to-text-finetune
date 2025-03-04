@@ -1,7 +1,6 @@
 name: Sync to Hugging Face Space
 
 on:
-  push:
   release:
     types: [published]
   workflow_dispatch:
