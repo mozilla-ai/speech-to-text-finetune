@@ -1,6 +1,6 @@
 model_id: openai/whisper-tiny
 dataset_id: example_data/custom
-dataset_source: local
+dataset_source: custom
 language: English
 repo_name: default
 
