@@ -66,10 +66,12 @@ def transcribe(
     elif local_model_id and not hf_model_id and not dropdown_model_id:
         pipe = _load_local_model(local_model_id)
     else:
-        return "️️⚠️ Please select or fill at least and only one of the options above"
+        return (
+            "⚠️ Error: Please select or fill at least and only one of the options above"
+        )
     if isinstance(pipe, str):
-        # Exception raised
-        return pipe
+        # Exception raised when loading
+        return f"⚠️ Error: {pipe}"
     text = pipe(audio)["text"]
     return text
 
