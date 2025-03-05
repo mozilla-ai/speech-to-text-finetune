@@ -29,20 +29,26 @@ def _load_local_model(model_dir: str) -> Pipeline:
     feature_extractor = WhisperFeatureExtractor.from_pretrained(model_dir)
     model = WhisperForConditionalGeneration.from_pretrained(model_dir)
 
-    return pipeline(
-        task="automatic-speech-recognition",
-        model=model,
-        processor=processor,
-        tokenizer=tokenizer,
-        feature_extractor=feature_extractor,
-    )
+    try:
+        return pipeline(
+            task="automatic-speech-recognition",
+            model=model,
+            processor=processor,
+            tokenizer=tokenizer,
+            feature_extractor=feature_extractor,
+        )
+    except Exception as e:
+        return str(e)
 
 
 def _load_hf_model(model_repo_id: str) -> Pipeline:
-    return pipeline(
-        "automatic-speech-recognition",
-        model=model_repo_id,
-    )
+    try:
+        return pipeline(
+            "automatic-speech-recognition",
+            model=model_repo_id,
+        )
+    except Exception as e:
+        return str(e)
 
 
 @spaces.GPU(duration=30)
@@ -61,6 +67,9 @@ def transcribe(
         pipe = _load_local_model(local_model_id)
     else:
         return "️️⚠️ Please select or fill at least and only one of the options above"
+    if isinstance(pipe, str):
+        # Exception raised
+        return pipe
     text = pipe(audio)["text"]
     return text
 
