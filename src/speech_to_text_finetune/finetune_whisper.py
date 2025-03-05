@@ -128,8 +128,12 @@ def run_finetuning(
         f"Start finetuning job on {dataset['train'].num_rows} audio samples. Monitor training metrics in real time in "
         f"a local tensorboard server by running in a new terminal: tensorboard --logdir {training_args.output_dir}/runs"
     )
-    trainer.train()
-    logger.info("Finetuning job complete.")
+    try:
+        trainer.train()
+    except KeyboardInterrupt:
+        logger.info("Stopping the finetuning job prematurely...")
+    else:
+        logger.info("Finetuning job complete.")
 
     logger.info(f"Start evaluation on {dataset['test'].num_rows} audio samples.")
     eval_results = trainer.evaluate()
