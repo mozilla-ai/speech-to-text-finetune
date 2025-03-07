@@ -1,7 +1,7 @@
 from typing import Tuple
 import gradio as gr
 from transformers import Pipeline
-from demo.transcribe_app import model_ids, load_model
+from transcribe_app import model_ids, load_model
 
 
 def transcribe(
