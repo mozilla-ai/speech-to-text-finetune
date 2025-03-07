@@ -87,6 +87,10 @@ The same instructions apply for the GitHub Codespaces option.
 5. Finetune a model by running: `python src/speech_to_text_finetune/finetune_whisper.py`
 6. Test the finetuned model in the transcription app: `python demo/transcribe_app.py`
 
+
+> [!TIP]
+> Run `python demo/model_comparison_app.py` to easily compare the performance of two models side by side ([example](images/model_comparison_example.png)).
+
 ## Troubleshooting
 
 If you are having issues / bugs, check our [Troubleshooting](https://mozilla-ai.github.io/speech-to-text-finetune/getting-started/#troubleshooting) section, before opening a new issue.
