@@ -8,4 +8,4 @@
 
 ::: speech_to_text_finetune.hf_utils
 
-::: speech_to_text_finetune.make_local_dataset_app
+::: speech_to_text_finetune.make_custom_dataset_app
