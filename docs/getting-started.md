@@ -26,7 +26,7 @@ Get started with Speech-to-text-finetune Blueprint using one of the options belo
       To load the app for making your own dataset for STT finetuning:
 
       ```bash
-      python src/speech_to_text_finetune/make_local_dataset_app.py
+      python src/speech_to_text_finetune/make_custom_dataset_app.py
       ```
 
       To load the Transcription app:
@@ -59,7 +59,7 @@ Get started with Speech-to-text-finetune Blueprint using one of the options belo
       To load the app for making your own dataset for STT finetuning:
 
       ```bash
-      python src/speech_to_text_finetune/make_local_dataset_app.py
+      python src/speech_to_text_finetune/make_custom_dataset_app.py
       ```
 
       To load the Transcription app:
