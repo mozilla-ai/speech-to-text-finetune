@@ -1,18 +1,10 @@
 from typing import Tuple
+
 import gradio as gr
-from transformers import Pipeline
-from transcribe_app import model_ids, load_model
+from transcribe_app import model_ids, transcribe
 
 
-def transcribe(
-    pipe: Pipeline, audio: gr.Audio, pipe_2: Pipeline | None
-) -> Tuple[str, str]:
-    text = pipe(audio)["text"]
-    text_2 = pipe_2(audio)["text"] if pipe_2 else ""
-    return text, text_2
-
-
-def model_select_block():
+def model_select_block() -> Tuple[gr.Dropdown, gr.Textbox, gr.Textbox]:
     with gr.Row():
         with gr.Column():
             dropdown_model = gr.Dropdown(
@@ -29,28 +21,37 @@ def model_select_block():
                 placeholder="artifacts/my-whisper-tiny",
             )
 
-    load_model_button = gr.Button("Load model")
-    model_loaded = gr.Markdown()
-    return dropdown_model, user_model, local_model, load_model_button, model_loaded
+    return dropdown_model, user_model, local_model
+
+
+def transcribe_sequentially(
+    dropdown_model: str,
+    user_model: str,
+    local_model: str,
+    dropdown_model_2: str,
+    user_model_2: str,
+    local_model_2: str,
+    audio: gr.Audio,
+) -> Tuple[str, str]:
+    if text_1 := transcribe(dropdown_model, user_model, local_model, audio):
+        yield text_1, ""
+    if text_2 := transcribe(dropdown_model_2, user_model_2, local_model_2, audio):
+        yield text_1, text_2
 
 
 def setup_gradio_demo():
     with gr.Blocks() as demo:
         gr.Markdown("# 🗣️ Compare STT models")
         gr.Markdown("## Select baseline model")
-        dropdown_model, user_model, local_model, load_model_button, model_loaded = (
-            model_select_block()
-        )
+        dropdown_model, user_model, local_model = model_select_block()
         gr.Markdown("## Select comparison model")
         (
             dropdown_model_2,
             user_model_2,
             local_model_2,
-            load_model_button_2,
-            model_loaded_2,
         ) = model_select_block()
 
-        ### Transcription ###
+        gr.Markdown("## Record a sample or upload an audio file")
         audio_input = gr.Audio(
             sources=["microphone", "upload"],
             type="filepath",
@@ -65,22 +66,17 @@ def setup_gradio_demo():
             with gr.Column():
                 transcribe_output_2 = gr.Text(label="Output of comparison model")
 
-        ### Event listeners ###
-        model = gr.State()
-        model_2 = gr.State()
-        load_model_button.click(
-            fn=load_model,
-            inputs=[dropdown_model, user_model, local_model],
-            outputs=[model, model_loaded],
-        )
-        load_model_button_2.click(
-            fn=load_model,
-            inputs=[dropdown_model_2, user_model_2, local_model_2],
-            outputs=[model_2, model_loaded_2],
-        )
         transcribe_button.click(
-            fn=transcribe,
-            inputs=[model, audio_input, model_2],
+            fn=transcribe_sequentially,
+            inputs=[
+                dropdown_model,
+                user_model,
+                local_model,
+                dropdown_model_2,
+                user_model_2,
+                local_model_2,
+                audio_input,
+            ],
             outputs=[transcribe_output, transcribe_output_2],
         )
 
