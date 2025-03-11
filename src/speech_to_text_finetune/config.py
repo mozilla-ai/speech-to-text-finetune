@@ -45,10 +45,8 @@ class Config(BaseModel):
         dataset_source: can be "HF" or "local", to determine from where to fetch the dataset
         language: registered language string that is supported by the Common Voice dataset
         repo_name: used both for local dir and HF, "default" will create a name based on the model and language id
-        n_train_samples: explicitly set how many samples to train+validate on.
-          If -1, then use all the train+validation data available
-        n_test_samples: explicitly set how many samples to evaluate on.
-          If -1, then use all the test data available
+        n_train_samples: explicitly set how many samples to train+validate on. If -1, use all train+val data available
+        n_test_samples: explicitly set how many samples to evaluate on. If -1, use all eval data available
         training_hp: store selective hyperparameter values from Seq2SeqTrainingArguments
     """
 
