@@ -42,10 +42,6 @@ class Config(BaseModel):
     Args:
         model_id (str): HF model id of a Whisper model used for finetuning
         dataset_id (str): HF dataset id of a Common Voice dataset version, ideally from the mozilla-foundation repo
-        dataset_source (str): can be "HF", "processed" or "local".
-            If "HF" will try to fetch an HF dataset id repo.
-            If "processed" will load an already processed dataset that was previously saved from this script.
-            If "local" will load a local dataset made from by make_local_dataset_app.py
         language (str): registered language string that is supported by the Common Voice dataset
         repo_name (str): used both for local dir and HF, "default" will create a name based on the model and language id
         training_hp (TrainingConfig): store selective hyperparameter values from Seq2SeqTrainingArguments
@@ -53,11 +49,12 @@ class Config(BaseModel):
 
     model_id: str
     dataset_id: str
-    dataset_source: str
     language: str
     repo_name: str
     training_hp: TrainingConfig
 
+
+is_processed_dataset_flag = "is_processed_dataset"
 
 LANGUAGES_NAME_TO_ID = {
     "Abkhaz": "ab",

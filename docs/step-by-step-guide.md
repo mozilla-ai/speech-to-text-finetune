@@ -50,7 +50,6 @@ Start by initially testing the quality of the Speech-to-Text models available in
     ```bash
     model_id: openai/whisper-tiny
     dataset_id: example_data/custom
-    dataset_source: local
     language: English
     repo_name: default
 
