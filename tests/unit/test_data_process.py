@@ -1,7 +1,7 @@
 import pytest
 from unittest.mock import patch, MagicMock
 from datasets import DatasetDict, Dataset
-from speech_to_text_finetune.data_process import load_common_voice, load_local_dataset
+from speech_to_text_finetune.data_process import _load_common_voice, _load_local_dataset
 
 
 @pytest.fixture
@@ -13,7 +13,7 @@ def mock_load_dataset():
 
 def test_load_common_voice(mock_load_dataset):
     dataset_id, language_id = "mozilla-foundation/common_voice_17_0", "en"
-    result = load_common_voice(dataset_id, language_id)
+    result = _load_common_voice(dataset_id, language_id)
 
     assert isinstance(result, DatasetDict)
     assert "train" in result
@@ -29,7 +29,7 @@ def test_load_common_voice(mock_load_dataset):
 
 
 def test_load_local_dataset_default_split(example_custom_data):
-    dataset = load_local_dataset(dataset_dir=example_custom_data)
+    dataset = _load_local_dataset(dataset_dir=example_custom_data)
 
     assert len(dataset["train"]) == 8
     assert len(dataset["test"]) == 2
@@ -42,7 +42,7 @@ def test_load_local_dataset_default_split(example_custom_data):
 
 
 def test_load_local_dataset_no_test(example_custom_data):
-    dataset = load_local_dataset(dataset_dir=example_custom_data, train_split=1.0)
+    dataset = _load_local_dataset(dataset_dir=example_custom_data, train_split=1.0)
 
     assert len(dataset["train"]) == 10
     assert len(dataset["test"]) == 0

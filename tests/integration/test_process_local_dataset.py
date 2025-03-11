@@ -1,22 +1,22 @@
 from transformers import WhisperFeatureExtractor, WhisperTokenizer
 
-from speech_to_text_finetune.data_process import load_local_dataset, process_dataset
+from speech_to_text_finetune.data_process import _load_local_dataset, _process_dataset
 
 
-def test_process_local_dataset(example_custom_data):
+def test_process_local_dataset(example_custom_data, tmp_path):
     model_id = "openai/whisper-tiny"
 
     tokenizer = WhisperTokenizer.from_pretrained(
         model_id, language="English", task="transcribe"
     )
 
-    dataset = load_local_dataset(dataset_dir=example_custom_data, train_split=0.5)
+    dataset = _load_local_dataset(dataset_dir=example_custom_data, train_split=0.5)
 
-    result = process_dataset(
+    result = _process_dataset(
         dataset,
         feature_extractor=WhisperFeatureExtractor.from_pretrained(model_id),
         tokenizer=tokenizer,
-        proc_dataset_path=None,
+        proc_dataset_path=tmp_path,
     )
 
     assert len(dataset["train"]) == len(result["train"])
