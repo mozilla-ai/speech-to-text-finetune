@@ -19,9 +19,10 @@ from loguru import logger
 
 def load_dataset_from_dataset_id(
     dataset_id: str,
-    language_id: str,
-    feature_extractor: WhisperFeatureExtractor,
-    tokenizer: WhisperTokenizer,
+    language_id: str | None = None,
+    feature_extractor: WhisperFeatureExtractor | None = None,
+    tokenizer: WhisperTokenizer | None = None,
+    local_train_split: float = 0.8,
 ) -> DatasetDict:
     """
     This function attempts to load a dataset based on certain scenarios:
@@ -40,9 +41,10 @@ def load_dataset_from_dataset_id(
 
     Args:
         dataset_id: Path to a processed dataset directory or local dataset directory or HuggingFace dataset ID.
-        language_id: Language identifier for the dataset (e.g., 'en' for English)
-        feature_extractor: Whisper feature extractor for processing audio inputs
-        tokenizer: Whisper tokenizer for processing text inputs
+        language_id (Only used for case 2 & 4): Language identifier for the dataset (e.g., 'en' for English)
+        feature_extractor (Only used for case 3 & 4): Whisper feature extractor for processing audio inputs
+        tokenizer: (Only used for case 3 & 4) Whisper tokenizer for processing text inputs
+        local_train_split: (Only used for case 3) Percentage split of train+validation and test set
 
     Returns:
         DatasetDict: A processed dataset ready for training with train/test splits
@@ -66,7 +68,7 @@ def load_dataset_from_dataset_id(
 
     if Path(dataset_id).is_dir():
         logger.info(f"Found local dataset at {dataset_id}.")
-        dataset = _load_local_dataset(dataset_id, train_split=0.8)
+        dataset = _load_local_dataset(dataset_id, train_split=local_train_split)
     elif repo_exists(dataset_id, repo_type="dataset"):
         logger.info(f"Loading HuggingFace dataset from {dataset_id}.")
         dataset = _load_common_voice(dataset_id, language_id)
