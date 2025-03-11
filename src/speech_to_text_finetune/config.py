@@ -54,7 +54,7 @@ class Config(BaseModel):
     training_hp: TrainingConfig
 
 
-is_processed_dataset_flag = "is_processed_dataset"
+PROC_DATASET_DIR = "processed_dataset"
 
 LANGUAGES_NAME_TO_ID = {
     "Abkhaz": "ab",

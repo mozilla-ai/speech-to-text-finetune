@@ -1,6 +1,6 @@
 import os
 from pathlib import Path
-from speech_to_text_finetune.config import is_processed_dataset_flag
+from speech_to_text_finetune.config import PROC_DATASET_DIR
 
 import pandas as pd
 import torch
@@ -26,25 +26,23 @@ def load_dataset_from_dataset_id(
 ) -> DatasetDict:
     """
     This function attempts to load a dataset based on certain scenarios:
-    1. The dataset had already been processed before and the user provides as dataset_id the path to the processed
-    dataset directory.
-        In that case, we verify that the path provided is indeed of a processed dataset by checking for a previously
-        generated flag file (see _process_dataset function) and we load it and return it directly.
+    1. The dataset_id is a local path to an already processed dataset directory.
+        We make sure the final folder name of that path is the PROC_DATASET_DIR constant.
 
-    2. The dataset had already been processed before but the user provides as dataset_id the original path to a local
-    dataset directory OR the original HuggingFace dataset repo id.
-        In that case, based on the given dataset_id, we try to find the processed dataset in the default directory that
-        we save processed datasets (see proc_dataset_path variable) and load it and return it directly.
+    2. The dataset_id is a path to a local dataset directory.
+        If that directory contains a PROC_DATASET_DIR folder, then we load the processed version directly.
+        If not, we load the local dataset, process it, save it locally and return it.
 
-    3. The dataset_id points to a local dataset directory. Then, we load it, process it, save it locally and return it.
-    4. The dataset_id points to an HF dataset repo id. Then, we load it, process it, save it locally and return it.
+    3. The dataset_id is an HF dataset repo id.
+        We first check if that dataset had already been processed and saved locally under the artifacts directory
+        If not, we load it, process it, save it locally under artifacts and return it.
 
     Args:
         dataset_id: Path to a processed dataset directory or local dataset directory or HuggingFace dataset ID.
-        language_id (Only used for case 2 & 4): Language identifier for the dataset (e.g., 'en' for English)
-        feature_extractor (Only used for case 3 & 4): Whisper feature extractor for processing audio inputs
-        tokenizer: (Only used for case 3 & 4) Whisper tokenizer for processing text inputs
-        local_train_split: (Only used for case 3) Percentage split of train+validation and test set
+        language_id (Only used for the HF dataset case): Language identifier for the dataset (e.g., 'en' for English)
+        feature_extractor (Only used for non-processed datasets): Whisper feature extractor for processing audio inputs
+        tokenizer: (Only used for non-processed datasets) Whisper tokenizer for processing text inputs
+        local_train_split: (Only used for non-processed, local, custom datasets) Percentage split of train/test sets
 
     Returns:
         DatasetDict: A processed dataset ready for training with train/test splits
@@ -52,24 +50,28 @@ def load_dataset_from_dataset_id(
     Raises:
         ValueError: If the dataset cannot be found locally or on HuggingFace
     """
+    dataset_path = Path(dataset_id)
+    proc_dataset_path = dataset_path.resolve() / PROC_DATASET_DIR
 
-    if Path(f"{dataset_id}/{is_processed_dataset_flag}").is_file():
-        logger.info(
-            f"Found processed dataset at {dataset_id}. Loading it directly and skipping processing."
-        )
-        return load_from_disk(dataset_id)
+    # Check if dataset_id is a local directory
+    if dataset_path.is_dir():
+        # Check if the local dataset already contains a processed version or is itself already the processed version
+        if proc_dataset_path.is_dir() or Path(dataset_path.name) == PROC_DATASET_DIR:
+            logger.info(
+                f"Found processed dataset at {dataset_id}. Loading it directly and skipping processing."
+            )
+            return load_from_disk(dataset_id)
 
-    proc_dataset_path = f"./artifacts/{language_id}_{dataset_id.replace('/', '_')}"
-    if Path(proc_dataset_path).is_dir():
-        logger.info(
-            f"Found processed dataset at {dataset_id}. Loading it directly and skipping processing."
-        )
-        return load_from_disk(dataset_id)
-
-    if Path(dataset_id).is_dir():
         logger.info(f"Found local dataset at {dataset_id}.")
         dataset = _load_local_dataset(dataset_id, train_split=local_train_split)
     elif repo_exists(dataset_id, repo_type="dataset"):
+        # If it's an HF dataset id, check if we had already saved a processed version under the artifacts directory
+        proc_dataset_path = f"./artifacts/{language_id}_{dataset_id.replace('/', '_')}/{PROC_DATASET_DIR}"
+        if Path(proc_dataset_path).is_dir():
+            logger.info(
+                f"Found processed version of {dataset_id} at {proc_dataset_path}. Loading it directly and skipping processing."
+            )
+            return load_from_disk(dataset_id)
         logger.info(f"Loading HuggingFace dataset from {dataset_id}.")
         dataset = _load_common_voice(dataset_id, language_id)
     else:
@@ -177,7 +179,6 @@ def _process_dataset(
     proc_dataset_path = Path(proc_dataset_path)
     Path.mkdir(proc_dataset_path, parents=True, exist_ok=True)
     dataset.save_to_disk(proc_dataset_path)
-    Path.touch(proc_dataset_path / is_processed_dataset_flag)
     return dataset
 
 
