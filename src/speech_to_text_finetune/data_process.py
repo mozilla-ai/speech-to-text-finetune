@@ -7,15 +7,85 @@ import torch
 from dataclasses import dataclass
 from typing import Dict, List, Union
 
+from huggingface_hub import repo_exists
 from transformers import (
     WhisperFeatureExtractor,
     WhisperTokenizer,
     WhisperProcessor,
 )
-from datasets import load_dataset, DatasetDict, Audio, Dataset
+from datasets import load_dataset, DatasetDict, Audio, Dataset, load_from_disk
+from loguru import logger
 
 
-def load_common_voice(dataset_id: str, language_id: str) -> DatasetDict:
+def load_dataset_from_dataset_id(
+    dataset_id: str,
+    language_id: str,
+    feature_extractor: WhisperFeatureExtractor,
+    tokenizer: WhisperTokenizer,
+) -> DatasetDict:
+    """
+    This function attempts to load a dataset based on certain scenarios:
+    1. The dataset had already been processed before and the user provides as dataset_id the path to the processed
+    dataset directory.
+        In that case, we verify that the path provided is indeed of a processed dataset by checking for a previously
+        generated flag file (see _process_dataset function) and we load it and return it directly.
+
+    2. The dataset had already been processed before but the user provides as dataset_id the original path to a local
+    dataset directory OR the original HuggingFace dataset repo id.
+        In that case, based on the given dataset_id, we try to find the processed dataset in the default directory that
+        we save processed datasets (see proc_dataset_path variable) and load it and return it directly.
+
+    3. The dataset_id points to a local dataset directory. Then, we load it, process it, save it locally and return it.
+    4. The dataset_id points to an HF dataset repo id. Then, we load it, process it, save it locally and return it.
+
+    Args:
+        dataset_id: Path to a processed dataset directory or local dataset directory or HuggingFace dataset ID.
+        language_id: Language identifier for the dataset (e.g., 'en' for English)
+        feature_extractor: Whisper feature extractor for processing audio inputs
+        tokenizer: Whisper tokenizer for processing text inputs
+
+    Returns:
+        DatasetDict: A processed dataset ready for training with train/test splits
+
+    Raises:
+        ValueError: If the dataset cannot be found locally or on HuggingFace
+    """
+
+    if Path(f"{dataset_id}/{is_processed_dataset_flag}").is_file():
+        logger.info(
+            f"Found processed dataset at {dataset_id}. Loading it directly and skipping processing."
+        )
+        return load_from_disk(dataset_id)
+
+    proc_dataset_path = f"./artifacts/{language_id}_{dataset_id.replace('/', '_')}"
+    if Path(proc_dataset_path).is_dir():
+        logger.info(
+            f"Found processed dataset at {dataset_id}. Loading it directly and skipping processing."
+        )
+        return load_from_disk(dataset_id)
+
+    if Path(dataset_id).is_dir():
+        logger.info(f"Found local dataset at {dataset_id}.")
+        dataset = _load_local_dataset(dataset_id, train_split=0.8)
+    elif repo_exists(dataset_id, repo_type="dataset"):
+        logger.info(f"Loading HuggingFace dataset from {dataset_id}.")
+        dataset = _load_common_voice(dataset_id, language_id)
+    else:
+        raise ValueError(
+            f"Could not find dataset {dataset_id}, neither locally nor at HuggingFace. "
+            f"If its a private repo, make sure you are logged in locally."
+        )
+
+    logger.info("Processing dataset...")
+    dataset = _process_dataset(dataset, feature_extractor, tokenizer, proc_dataset_path)
+    logger.info(
+        f"Processed dataset saved at {proc_dataset_path}. Future runs of {dataset_id} will automatically use "
+        f"this processed version."
+    )
+    return dataset
+
+
+def _load_common_voice(dataset_id: str, language_id: str) -> DatasetDict:
     """
     Load the default train+validation split used for finetuning and a test split used for evaluation.
     Args:
@@ -50,7 +120,7 @@ def load_common_voice(dataset_id: str, language_id: str) -> DatasetDict:
     return common_voice
 
 
-def load_local_dataset(dataset_dir: str, train_split: float = 0.8) -> DatasetDict:
+def _load_local_dataset(dataset_dir: str, train_split: float = 0.8) -> DatasetDict:
     """
     Load sentences and accompanied recorded audio files into a pandas DataFrame, then split into train/test and finally
     load it into two distinct train Dataset and test Dataset.
@@ -81,7 +151,7 @@ def load_local_dataset(dataset_dir: str, train_split: float = 0.8) -> DatasetDic
     return my_data
 
 
-def process_dataset(
+def _process_dataset(
     dataset: DatasetDict,
     feature_extractor: WhisperFeatureExtractor,
     tokenizer: WhisperTokenizer,
