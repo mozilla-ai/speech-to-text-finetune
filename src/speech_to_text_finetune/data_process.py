@@ -86,6 +86,10 @@ def load_local_dataset(dataset_dir: str, train_split: float = 0.8) -> DatasetDic
     return my_data
 
 
+def load_subset_of_dataset(dataset: Dataset, n_samples: int) -> Dataset:
+    return dataset.select(range(n_samples)) if n_samples != -1 else dataset
+
+
 def process_dataset(
     dataset: DatasetDict,
     feature_extractor: WhisperFeatureExtractor,
