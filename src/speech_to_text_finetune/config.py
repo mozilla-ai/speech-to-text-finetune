@@ -46,7 +46,6 @@ class Config(BaseModel):
             If "HF" will try to fetch an HF dataset id repo.
             If "processed" will load an already processed dataset that was previously saved from this script.
             If "local" will load a local dataset made from by make_local_dataset_app.py
-        save_processed_dataset (bool): whether to save a copy of the processed dataset to skip processing next time.
         language (str): registered language string that is supported by the Common Voice dataset
         repo_name (str): used both for local dir and HF, "default" will create a name based on the model and language id
         training_hp (TrainingConfig): store selective hyperparameter values from Seq2SeqTrainingArguments
@@ -55,7 +54,6 @@ class Config(BaseModel):
     model_id: str
     dataset_id: str
     dataset_source: str
-    save_processed_dataset: bool
     language: str
     repo_name: str
     training_hp: TrainingConfig
