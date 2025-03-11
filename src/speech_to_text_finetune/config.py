@@ -54,7 +54,7 @@ class Config(BaseModel):
     training_hp: TrainingConfig
 
 
-PROC_DATASET_DIR = "processed_dataset"
+PROC_DATASET_DIR = "processed_version"
 
 LANGUAGES_NAME_TO_ID = {
     "Abkhaz": "ab",
