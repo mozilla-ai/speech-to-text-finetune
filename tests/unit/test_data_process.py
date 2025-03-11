@@ -1,7 +1,11 @@
 import pytest
 from unittest.mock import patch, MagicMock
 from datasets import DatasetDict, Dataset
-from speech_to_text_finetune.data_process import load_common_voice, load_local_dataset
+from speech_to_text_finetune.data_process import (
+    load_common_voice,
+    load_local_dataset,
+    load_subset_of_dataset,
+)
 
 
 @pytest.fixture
@@ -46,3 +50,25 @@ def test_load_local_dataset_no_test(example_data):
 
     assert len(dataset["train"]) == 10
     assert len(dataset["test"]) == 0
+
+
+def test_load_subset_of_dataset_train(example_data):
+    dataset = load_local_dataset(dataset_dir=example_data, train_split=0.5)
+
+    subset = load_subset_of_dataset(dataset["train"], n_samples=-1)
+    assert len(subset) == len(dataset["train"]) == 5
+
+    subset = load_subset_of_dataset(dataset["train"], n_samples=5)
+    assert len(subset) == len(dataset["train"]) == 5
+
+    subset = load_subset_of_dataset(dataset["train"], n_samples=2)
+    assert len(subset) == 2
+
+    subset = load_subset_of_dataset(dataset["train"], n_samples=0)
+    assert len(subset) == 0
+
+    subset = load_subset_of_dataset(dataset["test"], n_samples=-1)
+    assert len(subset) == len(dataset["test"]) == 5
+
+    with pytest.raises(IndexError):
+        load_subset_of_dataset(dataset["train"], n_samples=6)
