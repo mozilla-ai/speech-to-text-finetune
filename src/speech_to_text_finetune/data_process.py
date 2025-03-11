@@ -1,5 +1,6 @@
 import os
 from pathlib import Path
+from speech_to_text_finetune.config import is_processed_dataset_flag
 
 import pandas as pd
 import torch
@@ -88,6 +89,8 @@ def process_dataset(
 ) -> DatasetDict:
     """
     Process dataset to the expected format by a Whisper model and then save it locally for future use.
+    A flag file is also saved in that directory that will be used in future runs to check if the dataset
+    is already processed.
     """
     # Create a new column that consists of the resampled audio samples in the right sample rate for whisper
     dataset = dataset.cast_column("audio", Audio(sampling_rate=16000))
@@ -99,8 +102,10 @@ def process_dataset(
         num_proc=1,
     )
 
-    Path.mkdir(Path(proc_dataset_path), parents=True, exist_ok=True)
+    proc_dataset_path = Path(proc_dataset_path)
+    Path.mkdir(proc_dataset_path, parents=True, exist_ok=True)
     dataset.save_to_disk(proc_dataset_path)
+    Path.touch(proc_dataset_path / is_processed_dataset_flag)
     return dataset
 
 
