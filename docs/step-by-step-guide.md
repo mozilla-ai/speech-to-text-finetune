@@ -65,6 +65,9 @@ Start by initially testing the quality of the Speech-to-Text models available in
 python src/speech_to_text_finetune/finetune_whisper.py
 ```
 
+> [!TIP]
+> You can prematurely and gracefully stop the finetuning job by pressing CTRL+C. The rest of the code (evaluation, uploading the model) will execute as normal.
+
 ### Step 4 - (Optional) Creating a finetuned STT model using CommonVoice data
 *Note: A Hugging Face account is required!*
 
@@ -96,6 +99,18 @@ python demo/transcribe_app.py
 2. Provided that `push_to_hub: True` when you Finetuned, you can select your HuggingFace model-id. If not, you can specify the local path to your model
 3. Record a sample of your voice and get the transcribed text back.
 4. You can easily switch between models with the same recorded sample to evaluate if the finetuned model has improved transcription accuracy.
+
+
+### Step 6 - Compare transcription performance between two models
+
+1. Start the Model Comparison app:
+ ```bash
+python demo/model_comparison_app.py
+```
+2. Select a baseline model, for example the model you used as a base for finetuning.
+3. Select a comparison model, for example your finetuned model.
+4. Record a sample of your voice and get two transcriptions back side-by-side for an easier manual evaluation.
+
 
 ## 🎨 **Customizing the Blueprint**
 
