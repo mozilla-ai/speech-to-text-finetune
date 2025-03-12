@@ -19,6 +19,8 @@ from speech_to_text_finetune.config import load_config, LANGUAGES_NAME_TO_ID
 from speech_to_text_finetune.data_process import (
     DataCollatorSpeechSeq2SeqWithPadding,
     load_dataset_from_dataset_id,
+    try_find_processed_version,
+    process_dataset,
 )
 from speech_to_text_finetune.hf_utils import (
     get_hf_username,
@@ -87,13 +89,30 @@ def run_finetuning(
 
     metric = evaluate.load("wer")
 
-    logger.info(f"Loading the {cfg.language} subset from the {cfg.dataset_id} dataset.")
-    dataset = load_dataset_from_dataset_id(
-        dataset_id=cfg.dataset_id,
-        language_id=language_id,
-        feature_extractor=feature_extractor,
-        tokenizer=tokenizer,
-    )
+    if proc_dataset := try_find_processed_version(
+        dataset_id=cfg.dataset_id, language_id=language_id
+    ):
+        logger.info(
+            f"Loading processed dataset version of {cfg.dataset_id} and skipping processing."
+        )
+        dataset = proc_dataset
+    else:
+        logger.info(
+            f"Loading the {cfg.language} subset from the {cfg.dataset_id} dataset."
+        )
+        dataset, save_proc_dataset_dir = load_dataset_from_dataset_id(
+            dataset_id=cfg.dataset_id,
+            language_id=language_id,
+            local_train_split=0.8,
+        )
+        logger.info("Processing dataset...")
+        dataset = process_dataset(
+            dataset, feature_extractor, tokenizer, save_proc_dataset_dir
+        )
+        logger.info(
+            f"Processed dataset saved at {save_proc_dataset_dir}. Future runs of {cfg.dataset_id} will "
+            f"automatically use this processed version."
+        )
 
     trainer = Seq2SeqTrainer(
         args=training_args,

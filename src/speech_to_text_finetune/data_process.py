@@ -5,7 +5,7 @@ from speech_to_text_finetune.config import PROC_DATASET_DIR
 import pandas as pd
 import torch
 from dataclasses import dataclass
-from typing import Dict, List, Union
+from typing import Dict, List, Union, Tuple
 
 from huggingface_hub import repo_exists
 from transformers import (
@@ -17,91 +17,16 @@ from datasets import load_dataset, DatasetDict, Audio, Dataset, load_from_disk
 from loguru import logger
 
 
-def load_dataset_from_dataset_id(
-    dataset_id: str,
-    language_id: str | None = None,
-    feature_extractor: WhisperFeatureExtractor | None = None,
-    tokenizer: WhisperTokenizer | None = None,
-    local_train_split: float = 0.8,
-) -> DatasetDict:
+def try_find_processed_version(
+    dataset_id: str, language_id: str | None
+) -> DatasetDict | None:
     """
-    This function attempts to load a dataset based on certain scenarios:
+    Try to load a processed version of the dataset if it exists locally. Check if:
     1. The dataset_id is a local path to an already processed dataset directory.
-
-    2. The dataset_id is a path to a local dataset directory OR an HF dataset directory, but a processed version
-        already exists locally.
-
-    3. The dataset_id is a path to a local, Common Voice dataset directory.
-
-    4. The dataset_id is a path to a local, custom dataset directory.
-
-    5. The dataset_id is a HuggingFace dataset ID.
-
-    Args:
-        dataset_id: Path to a processed dataset directory or local dataset directory or HuggingFace dataset ID.
-        language_id (Only used for the HF dataset case): Language identifier for the dataset (e.g., 'en' for English)
-        feature_extractor (Only used for non-processed datasets): Whisper feature extractor for processing audio inputs
-        tokenizer: (Only used for non-processed datasets) Whisper tokenizer for processing text inputs
-        local_train_split: (Only used for non-processed, local datasets) Percentage split of train/test sets
-
-    Returns:
-        DatasetDict: A processed dataset ready for training with train/test splits
-
-    Raises:
-        ValueError: If the dataset cannot be found locally or on HuggingFace
-    """
-
-    if _is_local_dataset_processed(dataset_id):
-        logger.info(
-            f"Loading processed dataset at {_is_local_dataset_processed} and skipping processing."
-        )
-        return load_from_disk(dataset_id)
-
-    if proc_dataset_dir := _check_for_processed_version(dataset_id, language_id):
-        logger.info(
-            f"Found processed dataset version at {proc_dataset_dir}. "
-            f"Loading it directly and skipping processing again the original {dataset_id}."
-        )
-        return load_from_disk(proc_dataset_dir)
-
-    if _is_local_dataset_common_voice(dataset_id):
-        logger.info(f"Found local Common Voice dataset at {dataset_id}.")
-        dataset = _load_local_common_voice(dataset_id, train_split=local_train_split)
-        proc_dataset_dir = _get_local_proc_dataset_path(dataset_id)
-
-    elif _is_local_dataset_custom(dataset_id):
-        logger.info(f"Found local custom dataset at {dataset_id}.")
-        dataset = _load_custom_dataset(dataset_id, train_split=local_train_split)
-        proc_dataset_dir = _get_local_proc_dataset_path(dataset_id)
-
-    elif repo_exists(dataset_id, repo_type="dataset"):
-        logger.info(f"Loading HuggingFace dataset from {dataset_id}.")
-        dataset = _load_common_voice(dataset_id, language_id)
-        proc_dataset_dir = _get_hf_proc_dataset_path(dataset_id, language_id)
-
-    else:
-        raise ValueError(
-            f"Could not find dataset {dataset_id}, neither locally nor at HuggingFace. "
-            f"If its a private repo, make sure you are logged in locally."
-        )
-
-    logger.info("Processing dataset...")
-    dataset = _process_dataset(dataset, feature_extractor, tokenizer, proc_dataset_dir)
-    logger.info(
-        f"Processed dataset saved at {proc_dataset_dir}. Future runs of {dataset_id} will automatically use "
-        f"this processed version."
-    )
-    return dataset
-
-
-def _is_local_dataset_processed(dataset_id: str) -> bool:
-    """
-    Check if the dataset_id is a local path to a valid processed dataset directory.
-    Args:
-        dataset_id (str): local path
-
-    Returns:
-        True if it is, False otherwise
+    or
+    2. The dataset_id is a path to a local dataset, but a processed version already exists locally.
+    or
+    3. The dataset_id is a HuggingFace dataset ID, but a processed version already exists locally.
     """
     if Path(Path(dataset_id).name) == PROC_DATASET_DIR:
         if (
@@ -109,32 +34,23 @@ def _is_local_dataset_processed(dataset_id: str) -> bool:
             and Path(dataset_id + "/test").is_dir()
             and Path(dataset_id + "/dataset_dict.json").is_file()
         ):
-            return True
+            return load_from_disk(dataset_id)
         else:
             raise FileNotFoundError("Processed dataset is incomplete.")
-    return False
 
-
-def _check_for_processed_version(dataset_id: str, language_id: str | None) -> str:
-    """
-    Check if a processed version of the dataset already exists locally.
-
-    Args:
-        dataset_id (str): local path or HF dataset id
-        language_id (str): language identifier for the dataset, used for HF datasets
-
-    Returns:
-        str: the path to the processed dataset directory if it exists, otherwise an empty string
-    """
     proc_dataset_path = _get_local_proc_dataset_path(dataset_id)
     if Path(proc_dataset_path).is_dir():
-        return proc_dataset_path
+        return load_from_disk(proc_dataset_path)
 
     hf_proc_dataset_path = _get_hf_proc_dataset_path(dataset_id, language_id)
     if Path(hf_proc_dataset_path).is_dir():
-        return hf_proc_dataset_path
+        logger.info(
+            f"Found processed dataset version at {proc_dataset_path} of HF dataset {dataset_id}. "
+            f"Loading it directly and skipping processing again the original version."
+        )
+        return load_from_disk(proc_dataset_path)
 
-    return ""
+    return None
 
 
 def _get_hf_proc_dataset_path(dataset_id: str, language_id: str) -> str:
@@ -145,6 +61,57 @@ def _get_hf_proc_dataset_path(dataset_id: str, language_id: str) -> str:
 
 def _get_local_proc_dataset_path(dataset_id: str) -> str:
     return Path(dataset_id).resolve() / PROC_DATASET_DIR
+
+
+def load_dataset_from_dataset_id(
+    dataset_id: str,
+    language_id: str | None = None,
+    local_train_split: float | None = 0.8,
+) -> Tuple[DatasetDict, str]:
+    """
+    This function loads a dataset, based on the dataset_id and the content of its directory (if it is a local path).
+    Possible cases:
+    1. The dataset_id is a path to a local, Common Voice dataset directory.
+
+    2. The dataset_id is a path to a local, custom dataset directory.
+
+    3. The dataset_id is a HuggingFace dataset ID.
+
+    Args:
+        dataset_id: Path to a processed dataset directory or local dataset directory or HuggingFace dataset ID.
+        language_id (Only used for the HF dataset case): Language identifier for the dataset (e.g., 'en' for English)
+        local_train_split: (Only used for local datasets) Percentage split of train/test sets
+
+    Returns:
+        DatasetDict: A processed dataset ready for training with train/test splits
+        str: Path to save the processed directory
+
+    Raises:
+        ValueError: If the dataset cannot be found locally or on HuggingFace
+    """
+
+    if _is_local_dataset_common_voice(dataset_id):
+        logger.info(f"Found local Common Voice dataset at {dataset_id}.")
+        dataset = _load_local_common_voice(dataset_id, train_split=local_train_split)
+        save_proc_dataset_dir = _get_local_proc_dataset_path(dataset_id)
+
+    elif _is_local_dataset_custom(dataset_id):
+        logger.info(f"Found local custom dataset at {dataset_id}.")
+        dataset = _load_custom_dataset(dataset_id, train_split=local_train_split)
+        save_proc_dataset_dir = _get_local_proc_dataset_path(dataset_id)
+
+    elif repo_exists(dataset_id, repo_type="dataset"):
+        logger.info(f"Loading HuggingFace dataset from {dataset_id}.")
+        dataset = _load_hf_common_voice(dataset_id, language_id)
+        save_proc_dataset_dir = _get_hf_proc_dataset_path(dataset_id, language_id)
+
+    else:
+        raise ValueError(
+            f"Could not find dataset {dataset_id}, neither locally nor at HuggingFace. "
+            f"If its a private repo, make sure you are logged in locally."
+        )
+
+    return dataset, save_proc_dataset_dir
 
 
 def _is_local_dataset_common_voice(dataset_id: str) -> bool:
@@ -166,7 +133,7 @@ def _is_local_dataset_custom(dataset_id: str) -> bool:
     return False
 
 
-def _load_common_voice(dataset_id: str, language_id: str) -> DatasetDict:
+def _load_hf_common_voice(dataset_id: str, language_id: str) -> DatasetDict:
     """
     Load the default train+validation split used for finetuning and a test split used for evaluation.
     Args:
@@ -296,7 +263,7 @@ def load_subset_of_dataset(dataset: Dataset, n_samples: int) -> Dataset:
     return dataset.select(range(n_samples)) if n_samples != -1 else dataset
 
 
-def _process_dataset(
+def process_dataset(
     dataset: DatasetDict,
     feature_extractor: WhisperFeatureExtractor,
     tokenizer: WhisperTokenizer,
