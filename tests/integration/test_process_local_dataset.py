@@ -1,26 +1,28 @@
 from transformers import WhisperFeatureExtractor, WhisperTokenizer
 
-from speech_to_text_finetune.data_process import _load_custom_dataset, _process_dataset
+from speech_to_text_finetune.data_process import process_dataset
 
 
-def test_process_local_dataset(example_custom_data, tmp_path):
+def test_load_processed_dataset(custom_dataset_half_split):
+    return
+
+
+def test_process_local_dataset(custom_dataset_half_split, tmp_path):
     model_id = "openai/whisper-tiny"
 
     tokenizer = WhisperTokenizer.from_pretrained(
         model_id, language="English", task="transcribe"
     )
 
-    dataset = _load_custom_dataset(dataset_dir=example_custom_data, train_split=0.5)
-
-    result = _process_dataset(
-        dataset,
+    result = process_dataset(
+        custom_dataset_half_split,
         feature_extractor=WhisperFeatureExtractor.from_pretrained(model_id),
         tokenizer=tokenizer,
         proc_dataset_path=str(tmp_path),
     )
 
-    assert len(dataset["train"]) == len(result["train"])
-    assert len(dataset["test"]) == len(result["test"])
+    assert len(custom_dataset_half_split["train"]) == len(result["train"])
+    assert len(custom_dataset_half_split["test"]) == len(result["test"])
 
     train_tokenized_label_first = result["train"][0]["labels"]
     test_tokenized_label_last = result["test"][-1]["labels"]
@@ -32,8 +34,8 @@ def test_process_local_dataset(example_custom_data, tmp_path):
     )
 
     # Make sure the text is being tokenized and indexed correctly
-    assert train_text_label_first == dataset["train"][0]["sentence"]
-    assert test_text_label_last == dataset["test"][-1]["sentence"]
+    assert train_text_label_first == custom_dataset_half_split["train"][0]["sentence"]
+    assert test_text_label_last == custom_dataset_half_split["test"][-1]["sentence"]
 
     # Sample a few transformed audio values and make sure they are in a reasonable range
     assert -100 < result["train"][0]["input_features"][0][10] < 100
