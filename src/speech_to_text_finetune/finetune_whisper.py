@@ -22,6 +22,7 @@ from speech_to_text_finetune.data_process import (
     DataCollatorSpeechSeq2SeqWithPadding,
     process_dataset,
     load_local_common_voice,
+    load_subset_of_dataset,
 )
 from speech_to_text_finetune.hf_utils import (
     get_hf_username,
@@ -68,6 +69,9 @@ def run_finetuning(
         dataset = load_local_dataset(cfg.dataset_id, train_split=0.8)
     else:
         raise ValueError(f"Unknown dataset source {cfg.dataset_source}")
+
+    dataset["train"] = load_subset_of_dataset(dataset["train"], cfg.n_train_samples)
+    dataset["test"] = load_subset_of_dataset(dataset["test"], cfg.n_test_samples)
 
     device = torch.cuda.get_device_name(0) if torch.cuda.is_available() else "CPU"
 
@@ -131,8 +135,12 @@ def run_finetuning(
         f"Start finetuning job on {dataset['train'].num_rows} audio samples. Monitor training metrics in real time in "
         f"a local tensorboard server by running in a new terminal: tensorboard --logdir {training_args.output_dir}/runs"
     )
-    trainer.train()
-    logger.info("Finetuning job complete.")
+    try:
+        trainer.train()
+    except KeyboardInterrupt:
+        logger.info("Stopping the finetuning job prematurely...")
+    else:
+        logger.info("Finetuning job complete.")
 
     logger.info(f"Start evaluation on {dataset['test'].num_rows} audio samples.")
     eval_results = trainer.evaluate()

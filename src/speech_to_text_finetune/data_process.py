@@ -28,10 +28,16 @@ def load_common_voice(dataset_id: str, language_id: str) -> DatasetDict:
     common_voice = DatasetDict()
 
     common_voice["train"] = load_dataset(
-        dataset_id, language_id, split="train+validation", trust_remote_code=True
+        dataset_id,
+        language_id,
+        split="train+validation",
+        trust_remote_code=True,
     )
     common_voice["test"] = load_dataset(
-        dataset_id, language_id, split="test", trust_remote_code=True
+        dataset_id,
+        language_id,
+        split="test",
+        trust_remote_code=True,
     )
     common_voice = common_voice.remove_columns(
         [
@@ -133,6 +139,10 @@ def load_local_dataset(dataset_dir: str, train_split: float = 0.8) -> DatasetDic
     my_data["test"] = Dataset.from_pandas(dataframe[train_index:])
 
     return my_data
+
+
+def load_subset_of_dataset(dataset: Dataset, n_samples: int) -> Dataset:
+    return dataset.select(range(n_samples)) if n_samples != -1 else dataset
 
 
 def process_dataset(
