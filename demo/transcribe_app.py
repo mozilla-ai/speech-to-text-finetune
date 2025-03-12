@@ -8,6 +8,8 @@ model_ids = [
     "",
     "mozilla-ai/whisper-small-gl (Galician)",
     "mozilla-ai/whisper-small-el (Greek)",
+    "mozilla-ai/whisper-small-fr (French)",
+    "mozilla-ai/whisper-small-sv (Swedish)",
     "openai/whisper-tiny (Multilingual)",
     "openai/whisper-small (Multilingual)",
     "openai/whisper-medium (Multilingual)",
