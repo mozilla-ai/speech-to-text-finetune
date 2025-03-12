@@ -18,7 +18,7 @@ from loguru import logger
 
 
 def try_find_processed_version(
-    dataset_id: str, language_id: str | None
+    dataset_id: str, language_id: str | None = None
 ) -> DatasetDict | None:
     """
     Try to load a processed version of the dataset if it exists locally. Check if:
@@ -28,7 +28,7 @@ def try_find_processed_version(
     or
     3. The dataset_id is a HuggingFace dataset ID, but a processed version already exists locally.
     """
-    if Path(Path(dataset_id).name) == PROC_DATASET_DIR:
+    if Path(dataset_id).name == PROC_DATASET_DIR:
         if (
             Path(dataset_id + "/train").is_dir()
             and Path(dataset_id + "/test").is_dir()

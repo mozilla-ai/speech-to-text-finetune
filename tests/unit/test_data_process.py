@@ -3,9 +3,11 @@ from unittest.mock import patch, MagicMock
 from datasets import DatasetDict, Dataset
 from transformers import WhisperTokenizer, WhisperFeatureExtractor
 
+from speech_to_text_finetune.config import PROC_DATASET_DIR
 from speech_to_text_finetune.data_process import (
     load_dataset_from_dataset_id,
     load_subset_of_dataset,
+    try_find_processed_version,
 )
 
 
@@ -26,14 +28,30 @@ def mock_whisper_tokenizer():
     return MagicMock(spec=WhisperTokenizer)
 
 
-@pytest.mark.parametrize(
-    "dataset_id, language_id",
-    [
-        ("local_common_voice_data_path", None),
-        ("custom_data_path", None),
-        ("mozilla-foundation/common_voice_17_0", "en"),
-    ],
-)
+def test_try_find_processed_version_local_cv(local_common_voice_data_path):
+    dataset = try_find_processed_version(dataset_id=local_common_voice_data_path)
+    assert dataset is None
+
+
+def test_try_find_processed_version_custom(custom_data_path):
+    dataset = try_find_processed_version(dataset_id=custom_data_path)
+    assert isinstance(dataset, DatasetDict)
+
+
+def test_try_find_processed_version_custom_proc_dir(custom_data_path):
+    dataset = try_find_processed_version(
+        dataset_id=custom_data_path + f"/{PROC_DATASET_DIR}"
+    )
+    assert isinstance(dataset, DatasetDict)
+
+
+def test_try_find_processed_version_hf_cv():
+    dataset = try_find_processed_version(
+        dataset_id="mozilla-foundation/common_voice_17_0", language_id="en"
+    )
+    assert dataset is None
+
+
 def test_load_dataset_from_dataset_id(
     dataset_id: str,
     language_id: str | None,
