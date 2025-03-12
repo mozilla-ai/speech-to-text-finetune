@@ -27,22 +27,22 @@ def load_dataset_from_dataset_id(
     """
     This function attempts to load a dataset based on certain scenarios:
     1. The dataset_id is a local path to an already processed dataset directory.
-        We make sure the final folder name of that path is the PROC_DATASET_DIR constant.
 
-    2. The dataset_id is a path to a local dataset directory.
-        If that directory contains a PROC_DATASET_DIR folder, then we load the processed version directly.
-        If not, we load the local dataset, process it, save it locally and return it.
+    2. The dataset_id is a path to a local dataset directory OR an HF dataset directory, but a processed version
+        already exists locally.
 
-    3. The dataset_id is an HF dataset repo id.
-        We first check if that dataset had already been processed and saved locally under the artifacts directory
-        If not, we load it, process it, save it locally under artifacts and return it.
+    3. The dataset_id is a path to a local, Common Voice dataset directory.
+
+    4. The dataset_id is a path to a local, custom dataset directory.
+
+    5. The dataset_id is a HuggingFace dataset ID.
 
     Args:
         dataset_id: Path to a processed dataset directory or local dataset directory or HuggingFace dataset ID.
         language_id (Only used for the HF dataset case): Language identifier for the dataset (e.g., 'en' for English)
         feature_extractor (Only used for non-processed datasets): Whisper feature extractor for processing audio inputs
         tokenizer: (Only used for non-processed datasets) Whisper tokenizer for processing text inputs
-        local_train_split: (Only used for non-processed, local, custom datasets) Percentage split of train/test sets
+        local_train_split: (Only used for non-processed, local datasets) Percentage split of train/test sets
 
     Returns:
         DatasetDict: A processed dataset ready for training with train/test splits
@@ -50,30 +50,35 @@ def load_dataset_from_dataset_id(
     Raises:
         ValueError: If the dataset cannot be found locally or on HuggingFace
     """
-    dataset_path = Path(dataset_id)
-    proc_dataset_path = dataset_path.resolve() / PROC_DATASET_DIR
 
-    # Check if dataset_id is a local directory
-    if dataset_path.is_dir():
-        # Check if the local dataset already contains a processed version or is itself already the processed version
-        if proc_dataset_path.is_dir() or Path(dataset_path.name) == PROC_DATASET_DIR:
-            logger.info(
-                f"Found processed dataset at {dataset_id}. Loading it directly and skipping processing."
-            )
-            return load_from_disk(dataset_id)
+    if _is_local_dataset_processed(dataset_id):
+        logger.info(
+            f"Loading processed dataset at {_is_local_dataset_processed} and skipping processing."
+        )
+        return load_from_disk(dataset_id)
 
-        logger.info(f"Found local dataset at {dataset_id}.")
-        dataset = _load_local_dataset(dataset_id, train_split=local_train_split)
+    if proc_dataset_dir := _check_for_processed_version(dataset_id, language_id):
+        logger.info(
+            f"Found processed dataset version at {proc_dataset_dir}. "
+            f"Loading it directly and skipping processing again the original {dataset_id}."
+        )
+        return load_from_disk(proc_dataset_dir)
+
+    if _is_local_dataset_common_voice(dataset_id):
+        logger.info(f"Found local Common Voice dataset at {dataset_id}.")
+        dataset = _load_local_common_voice(dataset_id, train_split=local_train_split)
+        proc_dataset_dir = _get_local_proc_dataset_path(dataset_id)
+
+    elif _is_local_dataset_custom(dataset_id):
+        logger.info(f"Found local custom dataset at {dataset_id}.")
+        dataset = _load_custom_dataset(dataset_id, train_split=local_train_split)
+        proc_dataset_dir = _get_local_proc_dataset_path(dataset_id)
+
     elif repo_exists(dataset_id, repo_type="dataset"):
-        # If it's an HF dataset id, check if we had already saved a processed version under the artifacts directory
-        proc_dataset_path = f"./artifacts/{language_id}_{dataset_id.replace('/', '_')}/{PROC_DATASET_DIR}"
-        if Path(proc_dataset_path).is_dir():
-            logger.info(
-                f"Found processed version of {dataset_id} at {proc_dataset_path}. Loading it directly and skipping processing."
-            )
-            return load_from_disk(dataset_id)
         logger.info(f"Loading HuggingFace dataset from {dataset_id}.")
         dataset = _load_common_voice(dataset_id, language_id)
+        proc_dataset_dir = _get_hf_proc_dataset_path(dataset_id, language_id)
+
     else:
         raise ValueError(
             f"Could not find dataset {dataset_id}, neither locally nor at HuggingFace. "
@@ -81,12 +86,84 @@ def load_dataset_from_dataset_id(
         )
 
     logger.info("Processing dataset...")
-    dataset = _process_dataset(dataset, feature_extractor, tokenizer, proc_dataset_path)
+    dataset = _process_dataset(dataset, feature_extractor, tokenizer, proc_dataset_dir)
     logger.info(
-        f"Processed dataset saved at {proc_dataset_path}. Future runs of {dataset_id} will automatically use "
+        f"Processed dataset saved at {proc_dataset_dir}. Future runs of {dataset_id} will automatically use "
         f"this processed version."
     )
     return dataset
+
+
+def _is_local_dataset_processed(dataset_id: str) -> bool:
+    """
+    Check if the dataset_id is a local path to a valid processed dataset directory.
+    Args:
+        dataset_id (str): local path
+
+    Returns:
+        True if it is, False otherwise
+    """
+    if Path(Path(dataset_id).name) == PROC_DATASET_DIR:
+        if (
+            Path(dataset_id + "/train").is_dir()
+            and Path(dataset_id + "/test").is_dir()
+            and Path(dataset_id + "/dataset_dict.json").is_file()
+        ):
+            return True
+        else:
+            raise FileNotFoundError("Processed dataset is incomplete.")
+    return False
+
+
+def _check_for_processed_version(dataset_id: str, language_id: str | None) -> str:
+    """
+    Check if a processed version of the dataset already exists locally.
+
+    Args:
+        dataset_id (str): local path or HF dataset id
+        language_id (str): language identifier for the dataset, used for HF datasets
+
+    Returns:
+        str: the path to the processed dataset directory if it exists, otherwise an empty string
+    """
+    proc_dataset_path = _get_local_proc_dataset_path(dataset_id)
+    if Path(proc_dataset_path).is_dir():
+        return proc_dataset_path
+
+    hf_proc_dataset_path = _get_hf_proc_dataset_path(dataset_id, language_id)
+    if Path(hf_proc_dataset_path).is_dir():
+        return hf_proc_dataset_path
+
+    return ""
+
+
+def _get_hf_proc_dataset_path(dataset_id: str, language_id: str) -> str:
+    return (
+        f"./artifacts/{language_id}_{dataset_id.replace('/', '_')}/{PROC_DATASET_DIR}"
+    )
+
+
+def _get_local_proc_dataset_path(dataset_id: str) -> str:
+    return Path(dataset_id).resolve() / PROC_DATASET_DIR
+
+
+def _is_local_dataset_common_voice(dataset_id: str) -> bool:
+    if (
+        Path(dataset_id + "/clips").is_dir()
+        and Path(dataset_id + "/other.tsv").is_file()
+        and Path(dataset_id + "/validated_sentences.tsv").is_file()
+    ):
+        return True
+    return False
+
+
+def _is_local_dataset_custom(dataset_id: str) -> bool:
+    if (
+        Path(dataset_id + "/rec_0.wav").is_file()
+        and Path(dataset_id + "/text.csv").is_file()
+    ):
+        return True
+    return False
 
 
 def _load_common_voice(dataset_id: str, language_id: str) -> DatasetDict:
@@ -102,10 +179,16 @@ def _load_common_voice(dataset_id: str, language_id: str) -> DatasetDict:
     common_voice = DatasetDict()
 
     common_voice["train"] = load_dataset(
-        dataset_id, language_id, split="train+validation", trust_remote_code=True
+        dataset_id,
+        language_id,
+        split="train+validation",
+        trust_remote_code=True,
     )
     common_voice["test"] = load_dataset(
-        dataset_id, language_id, split="test", trust_remote_code=True
+        dataset_id,
+        language_id,
+        split="test",
+        trust_remote_code=True,
     )
     common_voice = common_voice.remove_columns(
         [
@@ -124,7 +207,57 @@ def _load_common_voice(dataset_id: str, language_id: str) -> DatasetDict:
     return common_voice
 
 
-def _load_local_dataset(dataset_dir: str, train_split: float = 0.8) -> DatasetDict:
+def _load_local_common_voice(cv_data_dir: str, train_split: float = 0.8) -> DatasetDict:
+    """
+    Load a local Common Voice dataset (as downloaded from the official Common Voice website) into a DatasetDict.
+    We only use the validated.tsv file to source the data to use for both training and testing.
+
+    Args:
+        cv_data_dir (str): path to the local Common Voice dataset directory
+        train_split (str): percentage split of the dataset to train+validation and test set
+
+    Returns:
+        DatasetDict: HF Dataset dictionary that consists of two distinct Datasets (train+validation and test)
+    """
+    cv_data_dir = Path(cv_data_dir)
+    validated_df = pd.read_csv(cv_data_dir / "validated_sentences.tsv", sep="\t")
+    other_df = pd.read_csv(cv_data_dir / "other.tsv", sep="\t")
+
+    # Map sentence_id to sentences to then use the sentence_id to pull the correct audio path from other.tsv
+    sentence_map = dict(zip(validated_df["sentence_id"], validated_df["sentence"]))
+
+    # Filter out the rows that don't have a corresponding sentence_id in the sentence_map
+    other_df = other_df[other_df["sentence_id"].isin(sentence_map)]
+
+    # Write the full audio clip path
+    other_df["audio_clip_path"] = other_df["path"].apply(
+        lambda p: cv_data_dir / "clips" / p
+    )
+
+    dataset_df = pd.DataFrame(
+        {
+            "index": other_df.index,
+            "sentence": other_df["sentence_id"].map(
+                lambda i: sentence_map[i].replace('"', "")
+            ),  # remove " characters
+            "audio": other_df["audio_clip_path"].astype(str),
+            "sentence_id": other_df["sentence_id"],
+        }
+    )
+
+    train_index = round(len(dataset_df) * train_split)
+
+    dataset = DatasetDict(
+        {
+            "train": Dataset.from_pandas(dataset_df.iloc[:train_index]),
+            "test": Dataset.from_pandas(dataset_df.iloc[train_index:]),
+        }
+    )
+
+    return dataset
+
+
+def _load_custom_dataset(dataset_dir: str, train_split: float = 0.8) -> DatasetDict:
     """
     Load sentences and accompanied recorded audio files into a pandas DataFrame, then split into train/test and finally
     load it into two distinct train Dataset and test Dataset.
@@ -136,13 +269,17 @@ def _load_local_dataset(dataset_dir: str, train_split: float = 0.8) -> DatasetDi
         train_split (float): percentage split of the dataset to train+validation and test set
 
     Returns:
-        DatasetDict: HF Dataset dictionary in the same exact format as the Common Voice dataset from load_common_voice
+        DatasetDict: HF Dataset dictionary that consists of two distinct Datasets (train+validation and test)
     """
     text_file = dataset_dir + "/text.csv"
 
     dataframe = pd.read_csv(text_file)
     audio_files = sorted(
-        [f"{dataset_dir}/{f}" for f in os.listdir(dataset_dir) if f.endswith(".wav")]
+        [
+            f"{dataset_dir}/{f}"
+            for f in os.listdir(dataset_dir)
+            if f.endswith(".wav") or f.endswith(".mp3")
+        ],
     )
 
     dataframe["audio"] = audio_files
@@ -153,6 +290,10 @@ def _load_local_dataset(dataset_dir: str, train_split: float = 0.8) -> DatasetDi
     my_data["test"] = Dataset.from_pandas(dataframe[train_index:])
 
     return my_data
+
+
+def load_subset_of_dataset(dataset: Dataset, n_samples: int) -> Dataset:
+    return dataset.select(range(n_samples)) if n_samples != -1 else dataset
 
 
 def _process_dataset(

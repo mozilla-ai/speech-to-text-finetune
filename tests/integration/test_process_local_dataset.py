@@ -1,6 +1,6 @@
 from transformers import WhisperFeatureExtractor, WhisperTokenizer
 
-from speech_to_text_finetune.data_process import _load_local_dataset, _process_dataset
+from speech_to_text_finetune.data_process import _load_custom_dataset, _process_dataset
 
 
 def test_process_local_dataset(example_custom_data, tmp_path):
@@ -10,7 +10,7 @@ def test_process_local_dataset(example_custom_data, tmp_path):
         model_id, language="English", task="transcribe"
     )
 
-    dataset = _load_local_dataset(dataset_dir=example_custom_data, train_split=0.5)
+    dataset = _load_custom_dataset(dataset_dir=example_custom_data, train_split=0.5)
 
     result = _process_dataset(
         dataset,
