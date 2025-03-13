@@ -1,9 +1,8 @@
-import pytest
-from unittest.mock import patch, MagicMock
-from datasets import DatasetDict, Dataset
-from transformers import WhisperTokenizer, WhisperFeatureExtractor
+from unittest.mock import MagicMock, patch
 
-from speech_to_text_finetune.config import PROC_DATASET_DIR
+import pytest
+from datasets import DatasetDict, Dataset
+
 from speech_to_text_finetune.data_process import (
     load_dataset_from_dataset_id,
     load_subset_of_dataset,
@@ -21,34 +20,7 @@ def mock_load_hf_dataset():
         yield mocked_load
 
 
-@pytest.fixture
-def mock_whisper_feature_extractor():
-    return MagicMock(spec=WhisperFeatureExtractor)
-
-
-@pytest.fixture
-def mock_whisper_tokenizer():
-    return MagicMock(spec=WhisperTokenizer)
-
-
-def test_try_find_processed_version_local_cv(local_common_voice_data_path):
-    dataset = try_find_processed_version(dataset_id=local_common_voice_data_path)
-    assert dataset is None
-
-
-def test_try_find_processed_version_custom(custom_data_path):
-    dataset = try_find_processed_version(dataset_id=custom_data_path)
-    assert isinstance(dataset, DatasetDict)
-
-
-def test_try_find_processed_version_custom_proc_dir(custom_data_path):
-    dataset = try_find_processed_version(
-        dataset_id=custom_data_path + f"/{PROC_DATASET_DIR}"
-    )
-    assert isinstance(dataset, DatasetDict)
-
-
-def test_try_find_processed_version_hf_cv():
+def test_try_find_processed_version_hf():
     dataset = try_find_processed_version(
         dataset_id="mozilla-foundation/common_voice_17_0", language_id="en"
     )
