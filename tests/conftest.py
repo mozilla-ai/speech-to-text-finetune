@@ -1,6 +1,8 @@
 from pathlib import Path
+from unittest.mock import MagicMock
 
 import pytest
+from transformers import WhisperFeatureExtractor, WhisperTokenizer
 
 from speech_to_text_finetune.data_process import load_dataset_from_dataset_id
 
@@ -27,3 +29,13 @@ def custom_dataset_half_split(custom_data_path):
     return load_dataset_from_dataset_id(
         dataset_id=custom_data_path, local_train_split=0.5
     )
+
+
+@pytest.fixture
+def mock_whisper_feature_extractor():
+    return MagicMock(spec=WhisperFeatureExtractor)
+
+
+@pytest.fixture
+def mock_whisper_tokenizer():
+    return MagicMock(spec=WhisperTokenizer)
