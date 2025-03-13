@@ -12,9 +12,12 @@ from speech_to_text_finetune.data_process import (
 
 
 @pytest.fixture
-def mock_load_dataset_from_datasets_package():
+def mock_load_hf_dataset():
     with patch("speech_to_text_finetune.data_process.load_dataset") as mocked_load:
-        mocked_load.side_effect = [MagicMock(spec=Dataset), MagicMock(spec=Dataset)]
+        mock_dataset = MagicMock(spec=Dataset)
+        mock_dataset.features = {"index": None, "sentence": None, "audio": None}
+        mock_dataset.remove_columns = MagicMock(return_value=mock_dataset)
+        mocked_load.side_effect = [mock_dataset, mock_dataset]
         yield mocked_load
 
 
@@ -52,27 +55,36 @@ def test_try_find_processed_version_hf_cv():
     assert dataset is None
 
 
-def test_load_dataset_from_dataset_id(
-    dataset_id: str,
-    language_id: str | None,
-):
-    dataset = load_dataset_from_dataset_id(
-        dataset_id=dataset_id,
-        language_id=language_id,
-    )
-
+def _assert_proper_dataset(dataset: DatasetDict) -> None:
     assert isinstance(dataset, DatasetDict)
-    assert "train" in dataset
-    assert "test" in dataset
-    assert "gender" not in dataset["train"].features
-    assert "index" in dataset["train"]
-    assert "sentence" in dataset["train"]
-    assert "audio" in dataset["train"]
-    assert "sentence_id" in dataset["train"]
+    assert "index" in dataset["train"].features
+    assert "sentence" in dataset["train"].features
+    assert "audio" in dataset["train"].features
+
+    assert "index" in dataset["test"].features
+    assert "sentence" in dataset["test"].features
+    assert "audio" in dataset["test"].features
+
+
+def test_load_dataset_from_dataset_id_local_cv(local_common_voice_data_path):
+    dataset, _ = load_dataset_from_dataset_id(dataset_id=local_common_voice_data_path)
+    _assert_proper_dataset(dataset)
+
+
+def test_load_dataset_from_dataset_id_custom(custom_data_path):
+    dataset, _ = load_dataset_from_dataset_id(dataset_id=custom_data_path)
+    _assert_proper_dataset(dataset)
+
+
+def test_load_dataset_from_dataset_id_hf_cv(mock_load_hf_dataset):
+    dataset, _ = load_dataset_from_dataset_id(
+        dataset_id="mozilla-foundation/common_voice_17_0", language_id="en"
+    )
+    _assert_proper_dataset(dataset)
 
 
 def test_load_local_common_voice_split(local_common_voice_data_path):
-    dataset = load_dataset_from_dataset_id(
+    dataset, _ = load_dataset_from_dataset_id(
         dataset_id=local_common_voice_data_path, local_train_split=0.5
     )
 
@@ -93,7 +105,7 @@ def test_load_local_common_voice_split(local_common_voice_data_path):
 
 
 def test_load_custom_dataset_default_split(custom_data_path):
-    dataset = load_dataset_from_dataset_id(dataset_id=custom_data_path)
+    dataset, _ = load_dataset_from_dataset_id(dataset_id=custom_data_path)
 
     assert len(dataset["train"]) == 8
     assert len(dataset["test"]) == 2
@@ -106,7 +118,7 @@ def test_load_custom_dataset_default_split(custom_data_path):
 
 
 def test_load_custom_dataset_no_test(custom_data_path):
-    dataset = load_dataset_from_dataset_id(
+    dataset, _ = load_dataset_from_dataset_id(
         dataset_id=custom_data_path, local_train_split=1.0
     )
 
