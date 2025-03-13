@@ -1,5 +1,8 @@
 import os
 from pathlib import Path
+
+from huggingface_hub.errors import HFValidationError
+
 from speech_to_text_finetune.config import PROC_DATASET_DIR
 
 import pandas as pd
@@ -7,7 +10,6 @@ import torch
 from dataclasses import dataclass
 from typing import Dict, List, Union, Tuple
 
-from huggingface_hub import repo_exists
 from transformers import (
     WhisperFeatureExtractor,
     WhisperTokenizer,
@@ -28,7 +30,7 @@ def try_find_processed_version(
     or
     3. The dataset_id is a HuggingFace dataset ID, but a processed version already exists locally.
     """
-    if Path(dataset_id).name == PROC_DATASET_DIR:
+    if Path(dataset_id).name == PROC_DATASET_DIR and Path(dataset_id).is_dir():
         if (
             Path(dataset_id + "/train").is_dir()
             and Path(dataset_id + "/test").is_dir()
@@ -89,48 +91,28 @@ def load_dataset_from_dataset_id(
     Raises:
         ValueError: If the dataset cannot be found locally or on HuggingFace
     """
-
-    if _is_local_dataset_common_voice(dataset_id):
-        logger.info(f"Found local Common Voice dataset at {dataset_id}.")
+    try:
         dataset = _load_local_common_voice(dataset_id, train_split=local_train_split)
-        save_proc_dataset_dir = _get_local_proc_dataset_path(dataset_id)
+        return dataset, _get_local_proc_dataset_path(dataset_id)
+    except FileNotFoundError:
+        pass
 
-    elif _is_local_dataset_custom(dataset_id):
-        logger.info(f"Found local custom dataset at {dataset_id}.")
+    try:
         dataset = _load_custom_dataset(dataset_id, train_split=local_train_split)
-        save_proc_dataset_dir = _get_local_proc_dataset_path(dataset_id)
+        return dataset, _get_local_proc_dataset_path(dataset_id)
+    except FileNotFoundError:
+        pass
 
-    elif repo_exists(dataset_id, repo_type="dataset"):
-        logger.info(f"Loading HuggingFace dataset from {dataset_id}.")
+    try:
         dataset = _load_hf_common_voice(dataset_id, language_id)
-        save_proc_dataset_dir = _get_hf_proc_dataset_path(dataset_id, language_id)
+        return dataset, _get_hf_proc_dataset_path(dataset_id, language_id)
+    except HFValidationError:
+        pass
 
-    else:
-        raise ValueError(
-            f"Could not find dataset {dataset_id}, neither locally nor at HuggingFace. "
-            f"If its a private repo, make sure you are logged in locally."
-        )
-
-    return dataset, save_proc_dataset_dir
-
-
-def _is_local_dataset_common_voice(dataset_id: str) -> bool:
-    if (
-        Path(dataset_id + "/clips").is_dir()
-        and Path(dataset_id + "/other.tsv").is_file()
-        and Path(dataset_id + "/validated_sentences.tsv").is_file()
-    ):
-        return True
-    return False
-
-
-def _is_local_dataset_custom(dataset_id: str) -> bool:
-    if (
-        Path(dataset_id + "/rec_0.wav").is_file()
-        and Path(dataset_id + "/text.csv").is_file()
-    ):
-        return True
-    return False
+    raise ValueError(
+        f"Could not find dataset {dataset_id}, neither locally nor at HuggingFace. "
+        f"If its a private repo, make sure you are logged in locally."
+    )
 
 
 def _load_hf_common_voice(dataset_id: str, language_id: str) -> DatasetDict:
