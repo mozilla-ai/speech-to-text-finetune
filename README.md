@@ -9,21 +9,31 @@
   </picture>
 </p>
 
-# Finetuning Speech-to-Text models: a Blueprint by Mozilla.ai for building your own STT/ASR dataset & model
 
-[![](https://dcbadge.limes.pink/api/server/YuMNeuKStr?style=flat)](https://discord.gg/YuMNeuKStr)
+<div align="center">
+
+![Python](https://img.shields.io/badge/Python-3.10%2B-blue)
+[![Hugging Face](https://img.shields.io/badge/Hugging%20Face-%F0%9F%A4%97-yellow)](https://huggingface.co/)
+[![Gradio](https://img.shields.io/badge/Gradio-%F0%9F%8E%A8-green)](https://www.gradio.app/)
+[![Common Voice](https://img.shields.io/badge/Common%20Voice-%F0%9F%8E%A4-orange)](https://commonvoice.mozilla.org)
+[![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
+[![](https://dcbadge.limes.pink/api/server/YuMNeuKStr?style=flat)](https://discord.gg/YuMNeuKStr) <br>
 [![Docs](https://github.com/mozilla-ai/speech-to-text-finetune/actions/workflows/docs.yaml/badge.svg)](https://github.com/mozilla-ai/speech-to-text-finetune/actions/workflows/docs.yaml/)
 [![Tests](https://github.com/mozilla-ai/speech-to-text-finetune/actions/workflows/tests.yaml/badge.svg)](https://github.com/mozilla-ai/speech-to-text-finetune/actions/workflows/tests.yaml/)
 [![Ruff](https://github.com/mozilla-ai/speech-to-text-finetune/actions/workflows/lint.yaml/badge.svg?label=Ruff)](https://github.com/mozilla-ai/speech-to-text-finetune/actions/workflows/lint.yaml/)
 
+[Blueprints Hub](https://developer-hub.mozilla.ai/)
+| [Documentation](https://mozilla-ai.github.io/speech-to-text-finetune/)
+| [Getting Started](https://mozilla-ai.github.io/speech-to-text-finetune/getting-started)
+| [Contributing](CONTRIBUTING.md)
+
+</div>
+
+# Finetuning Speech-to-Text models: a Blueprint by Mozilla.ai for building your own STT/ASR dataset & model
 
 This blueprint enables you to create your own [Speech-to-Text](https://en.wikipedia.org/wiki/Speech_recognition) dataset and model, optimizing performance for your specific language and use case. Everything runs locally—even on your laptop, ensuring your data stays private. You can finetune a model using your own data or leverage the Common Voice dataset, which supports a wide range of languages. To see the full list of supported languages, visit the [CommonVoice website](https://commonvoice.mozilla.org/en/languages).
 
 <img src="./images/speech-to-text-finetune-diagram.png" width="1200" alt="speech-to-text-finetune Diagram" />
-
-### 📘 To explore this project further and discover other Blueprints, visit the [**Blueprints Hub**](https://developer-hub.mozilla.ai/).
-
-### 📖 For more detailed guidance on using this project, please visit our [Docs here](https://mozilla-ai.github.io/speech-to-text-finetune/)
 
 ## Example result on Galician
 
@@ -39,11 +49,6 @@ Text output:
 | O Comité Económico e Social Europeo deu luz verde esta terza feira ao uso de galego, euskera e catalán nas súas sesións plenarias, segundo informou o Ministerio de Asuntos Exteriores nun comunicado no que se felicitou da decisión. | O Comité Económico Social Europeo de Uluz Verde está terza feira a Ousse de Gallego e Uskera e Catalan a súas asesións planarias, segundo informou o Ministerio de Asuntos Exteriores nun comunicado no que se felicitou da decisión. | O Comité Económico Social Europeo deu luz verde esta terza feira ao uso de galego e usquera e catalán nas súas sesións planarias, segundo informou o Ministerio de Asuntos Exteriores nun comunicado no que se felicitou da decisión. |
 
 \* Finetuned on the Galician set Common Voice 17.0
-
-### 📖 For more detailed guidance on using this project, please visit our [Docs here](https://mozilla-ai.github.io/speech-to-text-finetune/)
-
-### Built with
-![Python](https://img.shields.io/badge/Python-3.10%2B-blue) [![Hugging Face](https://img.shields.io/badge/Hugging%20Face-%F0%9F%A4%97-yellow)](https://huggingface.co/) [![Gradio](https://img.shields.io/badge/Gradio-%F0%9F%8E%A8-green)](https://www.gradio.app/) [![Common Voice](https://img.shields.io/badge/Common%20Voice-%F0%9F%8E%A4-orange)](https://commonvoice.mozilla.org)
 
 ## Quick-start
 
