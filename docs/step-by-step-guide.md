@@ -50,7 +50,6 @@ Start by initially testing the quality of the Speech-to-Text models available in
     ```bash
     model_id: openai/whisper-tiny
     dataset_id: example_data/custom
-    dataset_source: custom
     language: English
     repo_name: default
 
@@ -91,6 +90,11 @@ python src/speech_to_text_finetune/finetune_whisper.py
 ```bash
 python src/speech_to_text_finetune/finetune_whisper.py
 ```
+
+
+> [!NOTE]
+> Every time you load a new dataset, the script will have to process it before feeding it to the STT model. The script will then also save this processed dataset version locally so that next time you want to finetune a model on the same dataset, the processing step will be skipped, saving time & computation.
+
 
 ### Step 5 - Evaluate transcription accuracy with your finetuned STT model
 1. Start the Transcription app:

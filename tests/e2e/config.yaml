@@ -1,6 +1,5 @@
 model_id: openai/whisper-tiny
 dataset_id: example_data/custom
-dataset_source: local
 language: English
 repo_name: e2e_test
 n_train_samples: -1
