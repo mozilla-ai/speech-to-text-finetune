@@ -5,6 +5,7 @@ from speech_to_text_finetune.data_process import (
     load_common_voice,
     load_local_dataset,
     load_subset_of_dataset,
+    load_local_common_voice,
 )
 
 
@@ -32,28 +33,49 @@ def test_load_common_voice(mock_load_dataset):
     )
 
 
-def test_load_local_dataset_default_split(example_data):
-    dataset = load_local_dataset(dataset_dir=example_data)
+def test_load_local_common_voice(example_common_voice_data):
+    dataset = load_local_common_voice(
+        cv_data_dir=example_common_voice_data, train_split=0.5
+    )
+
+    assert len(dataset["train"]) == 1
+    assert len(dataset["test"]) == 1
+
+    assert dataset["train"][0]["sentence"] == "Example sentence"
+    assert (
+        dataset["train"][0]["audio"]
+        == f"{example_common_voice_data}/clips/an_example.mp3"
+    )
+
+    assert dataset["test"][-1]["sentence"] == "Another example sentence"
+    assert (
+        dataset["test"][-1]["audio"]
+        == f"{example_common_voice_data}/clips/an_example_2.mp3"
+    )
+
+
+def test_load_local_dataset_default_split(example_custom_data):
+    dataset = load_local_dataset(dataset_dir=example_custom_data)
 
     assert len(dataset["train"]) == 8
     assert len(dataset["test"]) == 2
 
     assert dataset["train"][0]["sentence"] == "GO DO YOU HEAR"
-    assert dataset["train"][0]["audio"] == f"{example_data}/rec_0.wav"
+    assert dataset["train"][0]["audio"] == f"{example_custom_data}/rec_0.wav"
 
     assert dataset["test"][-1]["sentence"] == "DO YOU KNOW THE ASSASSIN ASKED MORREL"
-    assert dataset["test"][-1]["audio"] == f"{example_data}/rec_9.wav"
+    assert dataset["test"][-1]["audio"] == f"{example_custom_data}/rec_9.wav"
 
 
-def test_load_local_dataset_no_test(example_data):
-    dataset = load_local_dataset(dataset_dir=example_data, train_split=1.0)
+def test_load_local_dataset_no_test(example_custom_data):
+    dataset = load_local_dataset(dataset_dir=example_custom_data, train_split=1.0)
 
     assert len(dataset["train"]) == 10
     assert len(dataset["test"]) == 0
 
 
-def test_load_subset_of_dataset_train(example_data):
-    dataset = load_local_dataset(dataset_dir=example_data, train_split=0.5)
+def test_load_subset_of_dataset_train(example_custom_data):
+    dataset = load_local_dataset(dataset_dir=example_custom_data, train_split=0.5)
 
     subset = load_subset_of_dataset(dataset["train"], n_samples=-1)
     assert len(subset) == len(dataset["train"]) == 5

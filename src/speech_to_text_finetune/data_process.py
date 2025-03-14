@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 
 import pandas as pd
 import torch
@@ -55,6 +56,56 @@ def load_common_voice(dataset_id: str, language_id: str) -> DatasetDict:
     return common_voice
 
 
+def load_local_common_voice(cv_data_dir: str, train_split: float = 0.8) -> DatasetDict:
+    """
+    Load a local Common Voice dataset (as downloaded from the official Common Voice website) into a DatasetDict.
+    We only use the validated.tsv file to source the data to use for both training and testing.
+
+    Args:
+        cv_data_dir (str): path to the local Common Voice dataset directory
+        train_split (str): percentage split of the dataset to train+validation and test set
+
+    Returns:
+        DatasetDict: HF Dataset dictionary that consists of two distinct Datasets (train+validation and test)
+    """
+    cv_data_dir = Path(cv_data_dir)
+    validated_df = pd.read_csv(cv_data_dir / "validated_sentences.tsv", sep="\t")
+    other_df = pd.read_csv(cv_data_dir / "other.tsv", sep="\t")
+
+    # Map sentence_id to sentences to then use the sentence_id to pull the correct audio path from other.tsv
+    sentence_map = dict(zip(validated_df["sentence_id"], validated_df["sentence"]))
+
+    # Filter out the rows that don't have a corresponding sentence_id in the sentence_map
+    other_df = other_df[other_df["sentence_id"].isin(sentence_map)]
+
+    # Write the full audio clip path
+    other_df["audio_clip_path"] = other_df["path"].apply(
+        lambda p: cv_data_dir / "clips" / p
+    )
+
+    dataset_df = pd.DataFrame(
+        {
+            "index": other_df.index,
+            "sentence": other_df["sentence_id"].map(
+                lambda i: sentence_map[i].replace('"', "")
+            ),  # remove " characters
+            "audio": other_df["audio_clip_path"].astype(str),
+            "sentence_id": other_df["sentence_id"],
+        }
+    )
+
+    train_index = round(len(dataset_df) * train_split)
+
+    dataset = DatasetDict(
+        {
+            "train": Dataset.from_pandas(dataset_df.iloc[:train_index]),
+            "test": Dataset.from_pandas(dataset_df.iloc[train_index:]),
+        }
+    )
+
+    return dataset
+
+
 def load_local_dataset(dataset_dir: str, train_split: float = 0.8) -> DatasetDict:
     """
     Load sentences and accompanied recorded audio files into a pandas DataFrame, then split into train/test and finally
@@ -67,13 +118,17 @@ def load_local_dataset(dataset_dir: str, train_split: float = 0.8) -> DatasetDic
         train_split (float): percentage split of the dataset to train+validation and test set
 
     Returns:
-        DatasetDict: HF Dataset dictionary in the same exact format as the Common Voice dataset from load_common_voice
+        DatasetDict: HF Dataset dictionary that consists of two distinct Datasets (train+validation and test)
     """
     text_file = dataset_dir + "/text.csv"
 
     dataframe = pd.read_csv(text_file)
     audio_files = sorted(
-        [f"{dataset_dir}/{f}" for f in os.listdir(dataset_dir) if f.endswith(".wav")]
+        [
+            f"{dataset_dir}/{f}"
+            for f in os.listdir(dataset_dir)
+            if f.endswith(".wav") or f.endswith(".mp3")
+        ],
     )
 
     dataframe["audio"] = audio_files
