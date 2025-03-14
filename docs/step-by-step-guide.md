@@ -90,6 +90,11 @@ training_hp:
 python src/speech_to_text_finetune/finetune_whisper.py
 ```
 
+
+> [!NOTE]
+> Every time you load a new dataset, the script will have to process it before feeding it to the STT model. The script will then also save this processed dataset version locally so that next time you want to finetune a model on the same dataset, the processing step will be skipped, saving time & computation.
+
+
 ### Step 5 - Evaluate transcription accuracy with your finetuned STT model
 1. Start the Transcription app:
  ```bash
