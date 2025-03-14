@@ -97,9 +97,7 @@ def run_finetuning(
         )
         dataset = proc_dataset
     else:
-        logger.info(
-            f"Loading the {cfg.language} subset from the {cfg.dataset_id} dataset."
-        )
+        logger.info(f"Loading {cfg.dataset_id}. Language selected {cfg.language}")
         dataset, save_proc_dataset_dir = load_dataset_from_dataset_id(
             dataset_id=cfg.dataset_id,
             language_id=language_id,
@@ -107,7 +105,10 @@ def run_finetuning(
         )
         logger.info("Processing dataset...")
         dataset = process_dataset(
-            dataset, feature_extractor, tokenizer, save_proc_dataset_dir
+            dataset=dataset,
+            feature_extractor=feature_extractor,
+            tokenizer=tokenizer,
+            proc_dataset_path=save_proc_dataset_dir,
         )
         logger.info(
             f"Processed dataset saved at {save_proc_dataset_dir}. Future runs of {cfg.dataset_id} will "
