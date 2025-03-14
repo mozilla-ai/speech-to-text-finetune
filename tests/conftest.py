@@ -28,7 +28,7 @@ def local_common_voice_data_path():
 def custom_dataset_half_split(custom_data_path):
     return load_dataset_from_dataset_id(
         dataset_id=custom_data_path, local_train_split=0.5
-    )
+    )[0]
 
 
 @pytest.fixture

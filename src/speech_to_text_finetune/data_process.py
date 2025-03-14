@@ -108,6 +108,8 @@ def load_dataset_from_dataset_id(
         return dataset, _get_hf_proc_dataset_path(dataset_id, language_id)
     except HFValidationError:
         pass
+    except FileNotFoundError:
+        pass
 
     raise ValueError(
         f"Could not find dataset {dataset_id}, neither locally nor at HuggingFace. "

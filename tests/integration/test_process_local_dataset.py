@@ -32,26 +32,35 @@ def proc_custom_data_path(custom_data_path):
 
 @pytest.mark.parametrize(
     "dataset_id",
-    ["local_common_voice_data_path", "custom_data_path", "proc_custom_data_path"],
+    ["local_common_voice_data_path", "custom_data_path"],
 )
-def test_try_find_processed_version_local(
+def test_load_proc_dataset_after_init_processing(
     dataset_id,
     request,
     mock_whisper_feature_extractor,
     mock_whisper_tokenizer,
     mock_dataset_map,
 ):
+    # Arguments in the parametrize decorator are fixtures, not actual values
     dataset_id = request.getfixturevalue(dataset_id)
+
+    # First make sure there is no processed dataset version locally
+    shutil.rmtree(f"{dataset_id}/{PROC_DATASET_DIR}", ignore_errors=True)
+
+    # Try to find the processed dataset, expect not to find it
     dataset = try_find_processed_version(dataset_id=dataset_id)
     assert dataset is None
-    # Load and process the dataset to test if with the same path, now the processed dataset can be found
-    dataset, proc_dataset_dir = load_dataset_from_dataset_id(dataset_id=dataset_id)
+    # Load, process the dataset and save it under proc_dataset_dir
+    dataset, proc_dataset_dir = load_dataset_from_dataset_id(
+        dataset_id=dataset_id, local_train_split=0.5
+    )
     process_dataset(
         dataset=dataset,
         feature_extractor=mock_whisper_feature_extractor,
         tokenizer=mock_whisper_tokenizer,
         proc_dataset_path=proc_dataset_dir,
     )
+    # Now try again to find and load the processed version
     dataset = try_find_processed_version(dataset_id=dataset_id)
     assert isinstance(dataset, DatasetDict)
 
