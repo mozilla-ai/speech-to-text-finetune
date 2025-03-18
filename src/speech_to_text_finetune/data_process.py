@@ -141,19 +141,7 @@ def _load_hf_common_voice(dataset_id: str, language_id: str) -> DatasetDict:
         split="test",
         trust_remote_code=True,
     )
-    common_voice = common_voice.remove_columns(
-        [
-            "accent",
-            "age",
-            "client_id",
-            "down_votes",
-            "gender",
-            "locale",
-            "path",
-            "segment",
-            "up_votes",
-        ]
-    )
+    common_voice = common_voice.select_columns(["audio", "sentence"])
 
     return common_voice
 
