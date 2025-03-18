@@ -14,7 +14,13 @@ def test_finetune_whisper_local(example_config_path):
 
     assert 0 < base_results["eval_loss"] < 10
     assert 0 < base_results["eval_wer"] < 100
+    assert 0 < base_results["eval_wer_ortho"] < 100
+    assert 0 < base_results["eval_cer"] < 100
+    assert 0 < base_results["eval_cer_ortho"] < 100
     assert 0 < eval_results["eval_loss"] < 10
     assert 0 < eval_results["eval_wer"] < 100
+    assert 0 < eval_results["eval_wer_ortho"] < 100
+    assert 0 < eval_results["eval_cer"] < 100
+    assert 0 < eval_results["eval_cer_ortho"] < 100
 
     shutil.rmtree(expected_dir_path)
