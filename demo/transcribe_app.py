@@ -43,6 +43,7 @@ def _load_local_model(model_dir: str) -> Pipeline | str:
             processor=processor,
             tokenizer=tokenizer,
             feature_extractor=feature_extractor,
+            chunk_length_s=30,  # max input duration for whisper
         )
     except Exception as e:
         return str(e)
@@ -53,6 +54,7 @@ def _load_hf_model(model_repo_id: str) -> Pipeline | str:
         return pipeline(
             "automatic-speech-recognition",
             model=model_repo_id,
+            chunk_length_s=30,  # max input duration for whisper
         )
     except Exception as e:
         return str(e)
