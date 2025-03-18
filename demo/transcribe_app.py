@@ -156,7 +156,6 @@ def setup_gradio_demo():
                 type="filepath",
                 label="Record a message / Upload audio file",
                 show_download_button=True,
-                max_length=30,
             )
             timestamps_check = gr.Checkbox(label="Show timestamps")
 
