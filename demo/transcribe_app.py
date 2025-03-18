@@ -8,7 +8,7 @@ is_hf_space = os.getenv("IS_HF_SPACE")
 model_ids = (
     [""]
     + [
-        i.item_id
+        i.item_id + f" ({i.note})"
         for i in get_collection(
             "mozilla-ai/common-voice-whisper-67b847a74ad7561781aa10fd"
         ).items
