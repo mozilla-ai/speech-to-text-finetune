@@ -68,23 +68,24 @@ python src/speech_to_text_finetune/finetune_whisper.py
 > You can prematurely and gracefully stop the finetuning job by pressing CTRL+C. The rest of the code (evaluation, uploading the model) will execute as normal.
 
 ### Step 4 - (Optional) Creating a finetuned STT model using CommonVoice data
-*Note: A Hugging Face account is required!*
+1.
+2. Go to https://commonvoice.mozilla.org/en/datasets, pick your language and dataset version and download the dataset
+2. Move the zipped file under a directory of your choice and extract it
+3. Configure `config.yaml` with the model, Common Voice dataset path and hyperparameters of your choice. For example:
 
-1. Go to the Common Voice dataset repo and ask for explicit access request (should be approved instantly).
-2. On Hugging Face create an Access Token
-3. In your terminal, run the command `huggingface-cli login` and follow the instructions to log in to your account.
-4. Configure `config.yaml` with the model, Common Voice dataset repo id of HF and hyperparameters of your choice. For example:
-```bash
-model_id = "openai/whisper-tiny"
-dataset_id = "mozilla-foundation/common_voice_17_0"
-language = "Greek"
-repo_name: default
+ ```bash
+ model_id: openai/whisper-tiny
+ dataset_id: path/to/common_voice_data/language_id
+ dataset_source: custom
+ language: English
+ repo_name: default
 
-training_hp:
-    push_to_hub: False
-    hub_private_repo: True
-    ...
-```
+ training_hp:
+     push_to_hub: False
+     hub_private_repo: True
+     ...
+ ```
+
 5. Finetune a model by running:
 ```bash
 python src/speech_to_text_finetune/finetune_whisper.py
