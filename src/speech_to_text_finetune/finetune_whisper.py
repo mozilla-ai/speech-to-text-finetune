@@ -91,8 +91,6 @@ def run_finetuning(
         **cfg.training_hp.model_dump(),
     )
 
-    metric = evaluate.load("wer")
-
     if proc_dataset := try_find_processed_version(
         dataset_id=cfg.dataset_id, language_id=language_id
     ):
@@ -118,6 +116,9 @@ def run_finetuning(
             f"automatically use this processed version."
         )
 
+    wer = evaluate.load("wer")
+    cer = evaluate.load("cer")
+
     trainer = Seq2SeqTrainer(
         args=training_args,
         model=model,
@@ -125,9 +126,10 @@ def run_finetuning(
         eval_dataset=dataset["test"],
         data_collator=data_collator,
         compute_metrics=partial(
-            compute_word_error_rate,
+            compute_wer_cer_metrics,
             processor=processor,
-            metric=metric,
+            wer=wer,
+            cer=cer,
             normalizer=BasicTextNormalizer(),
         ),
         processing_class=processor.feature_extractor,
@@ -176,31 +178,29 @@ def run_finetuning(
     return baseline_eval_results, eval_results
 
 
-def compute_word_error_rate(
+def compute_wer_cer_metrics(
     pred: EvalPrediction,
     processor: WhisperProcessor,
-    metric: EvaluationModule,
+    wer: EvaluationModule,
+    cer: EvaluationModule,
     normalizer: BasicTextNormalizer,
 ) -> Dict:
     """
     Word Error Rate (wer) is a metric that measures the ratio of errors the ASR model makes given a transcript to the
     total words spoken. Lower is better.
-    To identify an "error" we measure the difference between the ASR generated transcript and the
-    ground truth transcript using the following formula:
-    - S is the number of substitutions (number of words ASR swapped for different words from the ground truth)
-    - D is the number of deletions (number of words ASR skipped / didn't generate compared to the ground truth)
-    - I is the number of insertions (number of additional words ASR generated, not found in the ground truth)
-    - C is the number of correct words (number of words that are identical between ASR and ground truth scripts)
+    Character Error Rate (cer) is similar to wer, but operates on character instead of word. This metric is better
+    suited for languages with no concept of "word" like Chinese or Japanese. Lower is better.
 
-    then: WER = (S+D+I) / (S+D+C)
+    More info: https://huggingface.co/learn/audio-course/en/chapter5/fine-tuning#evaluation-metrics
 
-    Note 1: WER can be larger than 1.0, if the number of insertions I is larger than the number of correct words C.
-    Note 2: WER doesn't tell the whole story and is not fully representative of the quality of the ASR model.
+    Note 1: WER/CER can be larger than 1.0, if the number of insertions I is larger than the number of correct words C.
+    Note 2: WER/CER doesn't tell the whole story and is not fully representative of the quality of the ASR model.
 
     Args:
         pred (EvalPrediction): Transformers object that holds predicted tokens and ground truth labels
         processor (WhisperProcessor): Whisper processor used to decode tokens to strings
-        metric (EvaluationModule): module that calls the computing function for WER
+        wer (EvaluationModule): module that calls the computing function for WER
+        cer (EvaluationModule): module that calls the computing function for CER
         normalizer (BasicTextNormalizer): Normalizer from Whisper
     Returns:
         wer (Dict): computed WER metric
@@ -217,7 +217,8 @@ def compute_word_error_rate(
     label_str = processor.batch_decode(label_ids, skip_special_tokens=True)
 
     # compute orthographic wer
-    wer_ortho = 100 * metric.compute(predictions=pred_str, references=label_str)
+    wer_ortho = 100 * wer.compute(predictions=pred_str, references=label_str)
+    cer_ortho = 100 * cer.compute(predictions=pred_str, references=label_str)
 
     # compute normalised WER
     pred_str_norm = [normalizer(pred) for pred in pred_str]
@@ -234,9 +235,10 @@ def compute_word_error_rate(
         if len(label_str_norm[i]) > 0
     ]
 
-    wer = 100 * metric.compute(predictions=pred_str_norm, references=label_str_norm)
+    wer = 100 * wer.compute(predictions=pred_str_norm, references=label_str_norm)
+    cer = 100 * cer.compute(predictions=pred_str_norm, references=label_str_norm)
 
-    return {"wer_ortho": wer_ortho, "wer": wer}
+    return {"wer_ortho": wer_ortho, "wer": wer, "cer_ortho": cer_ortho, "cer": cer}
 
 
 if __name__ == "__main__":
