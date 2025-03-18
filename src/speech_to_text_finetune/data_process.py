@@ -235,6 +235,13 @@ def load_subset_of_dataset(dataset: Dataset, n_samples: int) -> Dataset:
     return dataset.select(range(n_samples)) if n_samples != -1 else dataset
 
 
+def _is_audio_in_length_range(length: float, max_input_length: float = 30.0):
+    """
+    Whisper models can only process audio samples that are less than 30 seconds long.
+    """
+    return length < max_input_length
+
+
 def process_dataset(
     dataset: DatasetDict,
     feature_extractor: WhisperFeatureExtractor,
@@ -254,6 +261,12 @@ def process_dataset(
         fn_kwargs={"feature_extractor": feature_extractor, "tokenizer": tokenizer},
         remove_columns=dataset.column_names["train"],
         num_proc=1,
+    )
+
+    # Remove any sample longer than 30 seconds as it's not supported by whisper
+    dataset["train"] = dataset["train"].filter(
+        _is_audio_in_length_range,
+        input_columns=["input_length"],
     )
 
     proc_dataset_path = Path(proc_dataset_path)
