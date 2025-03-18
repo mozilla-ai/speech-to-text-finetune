@@ -16,7 +16,7 @@
       
       
       <link rel="icon" href="../images/Blueprint-logo-black-flavicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.7">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.9">
     
     
       
@@ -24,7 +24,7 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.8608ea7d.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.4af4bdda.min.css">
       
         
         <link rel="stylesheet" href="../assets/stylesheets/palette.06af60db.min.css">
@@ -369,18 +369,18 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#step-2-make-your-local-dataset-for-stt-finetuning" class="md-nav__link">
+  <a href="#step-2-make-your-custom-dataset-for-stt-finetuning" class="md-nav__link">
     <span class="md-ellipsis">
-      Step 2 - Make your Local Dataset for STT finetuning
+      Step 2 - Make your Custom Dataset for STT finetuning
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#step-3-creating-a-finetuned-stt-model-using-your-local-data" class="md-nav__link">
+  <a href="#step-3-creating-a-finetuned-stt-model-using-your-custom-data" class="md-nav__link">
     <span class="md-ellipsis">
-      Step 3 - Creating a finetuned STT model using your local data
+      Step 3 - Creating a finetuned STT model using your custom data
     </span>
   </a>
   
@@ -562,18 +562,18 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#step-2-make-your-local-dataset-for-stt-finetuning" class="md-nav__link">
+  <a href="#step-2-make-your-custom-dataset-for-stt-finetuning" class="md-nav__link">
     <span class="md-ellipsis">
-      Step 2 - Make your Local Dataset for STT finetuning
+      Step 2 - Make your Custom Dataset for STT finetuning
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#step-3-creating-a-finetuned-stt-model-using-your-local-data" class="md-nav__link">
+  <a href="#step-3-creating-a-finetuned-stt-model-using-your-custom-data" class="md-nav__link">
     <span class="md-ellipsis">
-      Step 3 - Creating a finetuned STT model using your local data
+      Step 3 - Creating a finetuned STT model using your custom data
     </span>
   </a>
   
@@ -661,7 +661,7 @@
 <p><strong>Dataset maker app</strong> 📂🎤: Another UI app that enables you to easily and quickly create your own Speech-to-Text dataset.</p>
 </li>
 <li>
-<p><strong>Finetuning script</strong> 🛠️🤖: A script to finetune your own STT model, either using Common Voice data or your own local data created by the Dataset maker app.</p>
+<p><strong>Finetuning script</strong> 🛠️🤖: A script to finetune your own STT model, either using Common Voice data or your own custom data created by the Dataset maker app.</p>
 </li>
 </ol>
 <hr />
@@ -681,31 +681,30 @@
 </li>
 <li>Record a sample of your voice and get the transcribed text back. You may find that there are sometimes inaccuracies for your voice/accent/chosen language, indicating the model could benefit form finetuning on additional data.</li>
 </ol>
-<h3 id="step-2-make-your-local-dataset-for-stt-finetuning">Step 2 - Make your Local Dataset for STT finetuning</h3>
+<h3 id="step-2-make-your-custom-dataset-for-stt-finetuning">Step 2 - Make your Custom Dataset for STT finetuning</h3>
 <ol>
 <li>
-<p>Create your own, local dataset by running this command and following the instructions:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>python<span class="w"> </span>src/speech_to_text_finetune/make_local_dataset_app.py
+<p>Create your own, custom dataset by running this command and following the instructions:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>python<span class="w"> </span>src/speech_to_text_finetune/make_custom_dataset_app.py
 </span></code></pre></div>
 </li>
 <li>
 <p>Follow the instruction in the app to create at least 10 audio samples, which will be saved locally.</p>
 </li>
 </ol>
-<h3 id="step-3-creating-a-finetuned-stt-model-using-your-local-data">Step 3 - Creating a finetuned STT model using your local data</h3>
+<h3 id="step-3-creating-a-finetuned-stt-model-using-your-custom-data">Step 3 - Creating a finetuned STT model using your custom data</h3>
 <ol>
 <li>
-<p>Configure <code>config.yaml</code> with the model, local data directory and hyperparameters of your choice. Note that if you select <code>push_to_hub: True</code> you need to have an HF account and log in locally. For example:</p>
+<p>Configure <code>config.yaml</code> with the model, custom data directory and hyperparameters of your choice. Note that if you select <code>push_to_hub: True</code> you need to have an HF account and log in locally. For example:</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>model_id:<span class="w"> </span>openai/whisper-tiny
 </span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>dataset_id:<span class="w"> </span>example_data/custom
-</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>dataset_source:<span class="w"> </span><span class="nb">local</span>
-</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>language:<span class="w"> </span>English
-</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>repo_name:<span class="w"> </span>default
-</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>
-</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>training_hp:
-</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="w">    </span>push_to_hub:<span class="w"> </span>False
-</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="w">    </span>hub_private_repo:<span class="w"> </span>True
-</span><span id="__span-2-10"><a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="w">    </span>...
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>language:<span class="w"> </span>English
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>repo_name:<span class="w"> </span>default
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>training_hp:
+</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="w">    </span>push_to_hub:<span class="w"> </span>False
+</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="w">    </span>hub_private_repo:<span class="w"> </span>True
+</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="w">    </span>...
 </span></code></pre></div>
 </li>
 <li>
@@ -719,26 +718,30 @@
 You can prematurely and gracefully stop the finetuning job by pressing CTRL+C. The rest of the code (evaluation, uploading the model) will execute as normal.</p>
 </blockquote>
 <h3 id="step-4-optional-creating-a-finetuned-stt-model-using-commonvoice-data">Step 4 - (Optional) Creating a finetuned STT model using CommonVoice data</h3>
-<p><em>Note: A Hugging Face account is required!</em></p>
+<p>1.
+2. Go to https://commonvoice.mozilla.org/en/datasets, pick your language and dataset version and download the dataset
+2. Move the zipped file under a directory of your choice and extract it
+3. Configure <code>config.yaml</code> with the model, Common Voice dataset path and hyperparameters of your choice. For example:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>model_id:<span class="w"> </span>openai/whisper-tiny
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>dataset_id:<span class="w"> </span>path/to/common_voice_data/language_id
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>dataset_source:<span class="w"> </span>custom
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>language:<span class="w"> </span>English
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>repo_name:<span class="w"> </span>default
+</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>
+</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>training_hp:
+</span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="w">    </span>push_to_hub:<span class="w"> </span>False
+</span><span id="__span-4-9"><a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a><span class="w">    </span>hub_private_repo:<span class="w"> </span>True
+</span><span id="__span-4-10"><a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a><span class="w">    </span>...
+</span></code></pre></div>
 <ol>
-<li>Go to the Common Voice dataset repo and ask for explicit access request (should be approved instantly).</li>
-<li>On Hugging Face create an Access Token</li>
-<li>In your terminal, run the command <code>huggingface-cli login</code> and follow the instructions to log in to your account.</li>
-<li>Configure <code>config.yaml</code> with the model, Common Voice dataset repo id of HF and hyperparameters of your choice. For example:
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="nv">model_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;openai/whisper-tiny&quot;</span>
-</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="nv">dataset_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;mozilla-foundation/common_voice_17_0&quot;</span>
-</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="nv">language</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;Greek&quot;</span>
-</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>repo_name:<span class="w"> </span>default
-</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>
-</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>training_hp:
-</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="w">    </span>push_to_hub:<span class="w"> </span>False
-</span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="w">    </span>hub_private_repo:<span class="w"> </span>True
-</span><span id="__span-4-9"><a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a><span class="w">    </span>...
-</span></code></pre></div></li>
 <li>Finetune a model by running:
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>python<span class="w"> </span>src/speech_to_text_finetune/finetune_whisper.py
 </span></code></pre></div></li>
 </ol>
+<blockquote>
+<p>[!NOTE]
+Every time you load a new dataset, the script will have to process it before feeding it to the STT model. The script will then also save this processed dataset version locally so that next time you want to finetune a model on the same dataset, the processing step will be skipped, saving time &amp; computation.</p>
+</blockquote>
 <h3 id="step-5-evaluate-transcription-accuracy-with-your-finetuned-stt-model">Step 5 - Evaluate transcription accuracy with your finetuned STT model</h3>
 <ol>
 <li>Start the Transcription app:
