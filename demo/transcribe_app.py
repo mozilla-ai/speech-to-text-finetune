@@ -1,21 +1,26 @@
 import os
 import gradio as gr
 import spaces
+from huggingface_hub import get_collection
 from transformers import pipeline, Pipeline
 
 is_hf_space = os.getenv("IS_HF_SPACE")
-model_ids = [
-    "",
-    "mozilla-ai/whisper-small-gl (Galician)",
-    "mozilla-ai/whisper-small-el (Greek)",
-    "mozilla-ai/whisper-small-fr (French)",
-    "mozilla-ai/whisper-small-sv (Swedish)",
-    "openai/whisper-tiny (Multilingual)",
-    "openai/whisper-small (Multilingual)",
-    "openai/whisper-medium (Multilingual)",
-    "openai/whisper-large-v3 (Multilingual)",
-    "openai/whisper-large-v3-turbo (Multilingual)",
-]
+model_ids = (
+    [""]
+    + [
+        i.item_id
+        for i in get_collection(
+            "mozilla-ai/common-voice-whisper-67b847a74ad7561781aa10fd"
+        ).items
+    ]
+    + [
+        "openai/whisper-tiny (Multilingual)",
+        "openai/whisper-small (Multilingual)",
+        "openai/whisper-medium (Multilingual)",
+        "openai/whisper-large-v3 (Multilingual)",
+        "openai/whisper-large-v3-turbo (Multilingual)",
+    ]
+)
 
 
 def _load_local_model(model_dir: str) -> Pipeline:
