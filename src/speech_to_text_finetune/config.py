@@ -42,7 +42,6 @@ class Config(BaseModel):
     Attributes:
         model_id: HF model id of a Whisper model used for finetuning
         dataset_id: HF dataset id of a Common Voice dataset version, ideally from the mozilla-foundation repo
-        dataset_source: can be "HF", "local_cv" or "custom", to determine from where to fetch the dataset
         language: registered language string that is supported by the Common Voice dataset
         repo_name: used both for local dir and HF, "default" will create a name based on the model and language id
         n_train_samples: explicitly set how many samples to train+validate on. If -1, use all train+val data available
@@ -52,13 +51,14 @@ class Config(BaseModel):
 
     model_id: str
     dataset_id: str
-    dataset_source: str
     language: str
     repo_name: str
     n_train_samples: int
     n_test_samples: int
     training_hp: TrainingConfig
 
+
+PROC_DATASET_DIR = "processed_version"
 
 LANGUAGES_NAME_TO_ID = {
     "Abkhaz": "ab",

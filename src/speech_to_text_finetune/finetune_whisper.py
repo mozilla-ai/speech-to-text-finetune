@@ -17,12 +17,10 @@ from loguru import logger
 
 from speech_to_text_finetune.config import load_config, LANGUAGES_NAME_TO_ID
 from speech_to_text_finetune.data_process import (
-    load_common_voice,
-    load_local_dataset,
     DataCollatorSpeechSeq2SeqWithPadding,
+    load_dataset_from_dataset_id,
+    try_find_processed_version,
     process_dataset,
-    load_local_common_voice,
-    load_subset_of_dataset,
 )
 from speech_to_text_finetune.hf_utils import (
     get_hf_username,
@@ -60,21 +58,7 @@ def run_finetuning(
             f"Private repo is set to {cfg.training_hp.hub_private_repo}."
         )
 
-    logger.info(f"Loading the {cfg.language} subset from the {cfg.dataset_id} dataset.")
-    if cfg.dataset_source == "HF":
-        dataset = load_common_voice(cfg.dataset_id, language_id)
-    elif cfg.dataset_source == "local_cv":
-        dataset = load_local_common_voice(cfg.dataset_id, train_split=0.8)
-    elif cfg.dataset_source == "local":
-        dataset = load_local_dataset(cfg.dataset_id, train_split=0.8)
-    else:
-        raise ValueError(f"Unknown dataset source {cfg.dataset_source}")
-
-    dataset["train"] = load_subset_of_dataset(dataset["train"], cfg.n_train_samples)
-    dataset["test"] = load_subset_of_dataset(dataset["test"], cfg.n_test_samples)
-
     device = torch.cuda.get_device_name(0) if torch.cuda.is_available() else "CPU"
-
     logger.info(
         f"Loading {cfg.model_id} on {device} and configuring it for {cfg.language}."
     )
@@ -91,9 +75,6 @@ def run_finetuning(
     model.generation_config.task = "transcribe"
     model.generation_config.forced_decoder_ids = None
 
-    logger.info("Preparing dataset...")
-    dataset = process_dataset(dataset, feature_extractor, tokenizer)
-
     data_collator = DataCollatorSpeechSeq2SeqWithPadding(
         processor=processor,
         decoder_start_token_id=model.config.decoder_start_token_id,
@@ -107,6 +88,32 @@ def run_finetuning(
     )
 
     metric = evaluate.load("wer")
+
+    if proc_dataset := try_find_processed_version(
+        dataset_id=cfg.dataset_id, language_id=language_id
+    ):
+        logger.info(
+            f"Loading processed dataset version of {cfg.dataset_id} and skipping processing."
+        )
+        dataset = proc_dataset
+    else:
+        logger.info(f"Loading {cfg.dataset_id}. Language selected {cfg.language}")
+        dataset, save_proc_dataset_dir = load_dataset_from_dataset_id(
+            dataset_id=cfg.dataset_id,
+            language_id=language_id,
+            local_train_split=0.8,
+        )
+        logger.info("Processing dataset...")
+        dataset = process_dataset(
+            dataset=dataset,
+            feature_extractor=feature_extractor,
+            tokenizer=tokenizer,
+            proc_dataset_path=save_proc_dataset_dir,
+        )
+        logger.info(
+            f"Processed dataset saved at {save_proc_dataset_dir}. Future runs of {cfg.dataset_id} will "
+            f"automatically use this processed version."
+        )
 
     trainer = Seq2SeqTrainer(
         args=training_args,
@@ -161,6 +168,7 @@ def run_finetuning(
             ft_eval_results=eval_results,
         )
 
+    logger.info(f"Find your final, best performing model at {local_output_dir}")
     return baseline_eval_results, eval_results
 
 
