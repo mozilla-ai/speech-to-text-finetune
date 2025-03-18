@@ -7,6 +7,7 @@ from speech_to_text_finetune.data_process import (
     load_dataset_from_dataset_id,
     load_subset_of_dataset,
     try_find_processed_version,
+    process_dataset,
 )
 
 
@@ -117,3 +118,28 @@ def test_load_subset_of_dataset_train(custom_dataset_half_split):
 
     with pytest.raises(IndexError):
         load_subset_of_dataset(custom_dataset_half_split["train"], n_samples=6)
+
+
+@pytest.fixture
+def mock_dataset():
+    data = {
+        "audio": [
+            {"array": [0.0] * 16000 * 31, "sampling_rate": 16000},  # 31 seconds
+            {"array": [0.0] * 16000 * 29, "sampling_rate": 16000},  # 29 seconds
+        ],
+        "sentence": [
+            "This is an invalid audio sample.",
+            "This is a valid audio sample.",
+        ],
+    }
+    return DatasetDict({"train": Dataset.from_dict(data)})
+
+
+def test_remove_long_audio_samples(mock_dataset, mock_whisper_processor, tmp_path):
+    processed_dataset = process_dataset(
+        dataset=mock_dataset,
+        processor=mock_whisper_processor,
+        proc_dataset_path=str(tmp_path),
+    )
+    assert len(processed_dataset["train"]) == 1
+    assert processed_dataset["train"][0]["sentence"] == "This is a valid audio sample."
