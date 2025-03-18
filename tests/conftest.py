@@ -2,7 +2,7 @@ from pathlib import Path
 from unittest.mock import MagicMock
 
 import pytest
-from transformers import WhisperFeatureExtractor, WhisperTokenizer
+from transformers import WhisperProcessor, WhisperFeatureExtractor
 
 from speech_to_text_finetune.data_process import load_dataset_from_dataset_id
 
@@ -32,10 +32,13 @@ def custom_dataset_half_split(custom_data_path):
 
 
 @pytest.fixture
-def mock_whisper_feature_extractor():
-    return MagicMock(spec=WhisperFeatureExtractor)
-
-
-@pytest.fixture
-def mock_whisper_tokenizer():
-    return MagicMock(spec=WhisperTokenizer)
+def mock_whisper_processor():
+    mock_processor = MagicMock(spec=WhisperProcessor)
+    mock_processor.feature_extractor = MagicMock(spec=WhisperFeatureExtractor)
+    mock_processor.feature_extractor.sampling_rate = 16000
+    mock_processor.side_effect = lambda audio, sampling_rate, text: {
+        "input_features": [[0.1] * 80],
+        "labels": [1, 2, 3, 4],
+        "input_length": len(audio) / sampling_rate,
+    }
+    return mock_processor
