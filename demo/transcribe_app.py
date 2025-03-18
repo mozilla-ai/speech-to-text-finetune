@@ -23,7 +23,7 @@ model_ids = (
 )
 
 
-def _load_local_model(model_dir: str) -> Pipeline:
+def _load_local_model(model_dir: str) -> Pipeline | str:
     from transformers import (
         WhisperProcessor,
         WhisperTokenizer,
@@ -48,7 +48,7 @@ def _load_local_model(model_dir: str) -> Pipeline:
         return str(e)
 
 
-def _load_hf_model(model_repo_id: str) -> Pipeline:
+def _load_hf_model(model_repo_id: str) -> Pipeline | str:
     try:
         return pipeline(
             "automatic-speech-recognition",
