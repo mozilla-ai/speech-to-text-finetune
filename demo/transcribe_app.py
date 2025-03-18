@@ -60,12 +60,35 @@ def _load_hf_model(model_repo_id: str) -> Pipeline | str:
         return str(e)
 
 
+# Copied from https://github.com/openai/whisper/blob/517a43ecd132a2089d85f4ebc044728a71d49f6e/whisper/utils.py#L50
+def format_timestamp(
+    seconds: float, always_include_hours: bool = False, decimal_marker: str = "."
+):
+    assert seconds >= 0, "non-negative timestamp expected"
+    milliseconds = round(seconds * 1000.0)
+
+    hours = milliseconds // 3_600_000
+    milliseconds -= hours * 3_600_000
+
+    minutes = milliseconds // 60_000
+    milliseconds -= minutes * 60_000
+
+    seconds = milliseconds // 1_000
+    milliseconds -= seconds * 1_000
+
+    hours_marker = f"{hours:02d}:" if always_include_hours or hours > 0 else ""
+    return (
+        f"{hours_marker}{minutes:02d}:{seconds:02d}{decimal_marker}{milliseconds:03d}"
+    )
+
+
 @spaces.GPU(duration=30)
 def transcribe(
     dropdown_model_id: str,
     hf_model_id: str,
     local_model_id: str,
     audio: gr.Audio,
+    show_timestamps: bool,
 ) -> str:
     if dropdown_model_id and not hf_model_id and not local_model_id:
         dropdown_model_id = dropdown_model_id.split(" (")[0]
@@ -81,7 +104,21 @@ def transcribe(
     if isinstance(pipe, str):
         # Exception raised when loading
         return f"⚠️ Error: {pipe}"
-    text = pipe(audio)["text"]
+
+    output = pipe(
+        audio,
+        generate_kwargs={"task": "transcribe"},
+        batch_size=16,
+        return_timestamps=show_timestamps,
+    )
+    text = output["text"]
+    if show_timestamps:
+        timestamps = output["chunks"]
+        timestamps = [
+            f"[{format_timestamp(chunk['timestamp'][0])} -> {format_timestamp(chunk['timestamp'][1])}] {chunk['text']}"
+            for chunk in timestamps
+        ]
+        text = "\n".join(str(feature) for feature in timestamps)
     return text
 
 
@@ -113,19 +150,28 @@ def setup_gradio_demo():
                 )
 
         ### Transcription ###
-        audio_input = gr.Audio(
-            sources=["microphone", "upload"],
-            type="filepath",
-            label="Record a message / Upload audio file",
-            show_download_button=True,
-            max_length=30,
-        )
+        with gr.Group():
+            audio_input = gr.Audio(
+                sources=["microphone", "upload"],
+                type="filepath",
+                label="Record a message / Upload audio file",
+                show_download_button=True,
+                max_length=30,
+            )
+            timestamps_check = gr.Checkbox(label="Show timestamps")
+
         transcribe_button = gr.Button("Transcribe")
         transcribe_output = gr.Text(label="Output")
 
         transcribe_button.click(
             fn=transcribe,
-            inputs=[dropdown_model, user_model, local_model, audio_input],
+            inputs=[
+                dropdown_model,
+                user_model,
+                local_model,
+                audio_input,
+                timestamps_check,
+            ],
             outputs=transcribe_output,
         )
 
