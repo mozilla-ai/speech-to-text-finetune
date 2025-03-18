@@ -47,10 +47,10 @@ def try_find_processed_version(
     hf_proc_dataset_path = _get_hf_proc_dataset_path(dataset_id, language_id)
     if Path(hf_proc_dataset_path).is_dir():
         logger.info(
-            f"Found processed dataset version at {proc_dataset_path} of HF dataset {dataset_id}. "
+            f"Found processed dataset version at {hf_proc_dataset_path} of HF dataset {dataset_id}. "
             f"Loading it directly and skipping processing again the original version."
         )
-        return load_from_disk(proc_dataset_path)
+        return load_from_disk(hf_proc_dataset_path)
 
     return None
 
