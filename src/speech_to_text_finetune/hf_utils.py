@@ -84,7 +84,7 @@ def upload_custom_hf_model_card(
     card_metadata = ModelCardData(
         model_name=f"Finetuned {model_id} on {language}",
         base_model=model_id,
-        datasets=[dataset_id],
+        datasets=[dataset_id.split("/")[-1]],
         language=language_id,
         license="apache-2.0",
         library_name="transformers",
@@ -112,11 +112,17 @@ This model was created from the Mozilla.ai Blueprint:
 ## Evaluation results on {n_eval_samples} audio samples of {language}:
 
 ### Baseline model (before finetuning) on {language}
-- Word Error Rate: {round(baseline_eval_results["eval_wer"], 3)}
+- Word Error Rate (Normalized): {round(baseline_eval_results["eval_wer"], 3)}
+- Word Error Rate (Orthographic): {round(baseline_eval_results["eval_wer_ortho"], 3)}
+- Character Error Rate (Normalized): {round(baseline_eval_results["eval_cer"], 3)}
+- Character Error Rate (Orthographic): {round(baseline_eval_results["eval_cer_ortho"], 3)}
 - Loss: {round(baseline_eval_results["eval_loss"], 3)}
 
 ### Finetuned model (after finetuning) on {language}
-- Word Error Rate: {round(ft_eval_results["eval_wer"], 3)}
+- Word Error Rate (Normalized): {round(ft_eval_results["eval_wer"], 3)}
+- Word Error Rate (Orthographic): {round(ft_eval_results["eval_wer_ortho"], 3)}
+- Character Error Rate (Normalized): {round(ft_eval_results["eval_cer"], 3)}
+- Character Error Rate (Orthographic): {round(ft_eval_results["eval_cer_ortho"], 3)}
 - Loss: {round(ft_eval_results["eval_loss"], 3)}
 """
 
