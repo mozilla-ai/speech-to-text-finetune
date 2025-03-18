@@ -15,7 +15,7 @@ def mock_load_hf_dataset():
     with patch("speech_to_text_finetune.data_process.load_dataset") as mocked_load:
         mock_dataset = MagicMock(spec=Dataset)
         mock_dataset.features = {"index": None, "sentence": None, "audio": None}
-        mock_dataset.remove_columns = MagicMock(return_value=mock_dataset)
+        mock_dataset.select_columns = MagicMock(return_value=mock_dataset)
         mocked_load.side_effect = [mock_dataset, mock_dataset]
         yield mocked_load
 

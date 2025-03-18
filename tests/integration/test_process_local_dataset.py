@@ -1,9 +1,8 @@
 import shutil
-from unittest.mock import patch
 
 import pytest
 from datasets import DatasetDict
-from transformers import WhisperFeatureExtractor, WhisperTokenizer
+from transformers import WhisperProcessor
 
 from speech_to_text_finetune.config import PROC_DATASET_DIR
 from speech_to_text_finetune.data_process import (
@@ -11,18 +10,6 @@ from speech_to_text_finetune.data_process import (
     try_find_processed_version,
     load_dataset_from_dataset_id,
 )
-
-
-@pytest.fixture
-def mock_dataset_map():
-    with patch(
-        "speech_to_text_finetune.data_process._process_inputs_and_labels_for_whisper"
-    ) as mocked_process:
-        mocked_process.return_value = {
-            "input_features": [0.1, 0.2, 0.3],
-            "labels": [1, 2, 3],
-        }
-        yield mocked_process
 
 
 @pytest.fixture
@@ -37,9 +24,7 @@ def proc_custom_data_path(custom_data_path):
 def test_load_proc_dataset_after_init_processing(
     dataset_id,
     request,
-    mock_whisper_feature_extractor,
-    mock_whisper_tokenizer,
-    mock_dataset_map,
+    mock_whisper_processor,
 ):
     # Arguments in the parametrize decorator are fixtures, not actual values
     dataset_id = request.getfixturevalue(dataset_id)
@@ -55,8 +40,7 @@ def test_load_proc_dataset_after_init_processing(
     )
     process_dataset(
         dataset=dataset,
-        feature_extractor=mock_whisper_feature_extractor,
-        tokenizer=mock_whisper_tokenizer,
+        processor=mock_whisper_processor,
         proc_dataset_path=proc_dataset_dir,
     )
     # Now try again to find and load the processed version
@@ -70,14 +54,13 @@ def test_load_proc_dataset_after_init_processing(
 def test_process_local_dataset(custom_dataset_half_split, tmp_path):
     model_id = "openai/whisper-tiny"
 
-    tokenizer = WhisperTokenizer.from_pretrained(
+    processor = WhisperProcessor.from_pretrained(
         model_id, language="English", task="transcribe"
     )
 
     result = process_dataset(
         custom_dataset_half_split,
-        feature_extractor=WhisperFeatureExtractor.from_pretrained(model_id),
-        tokenizer=tokenizer,
+        processor=processor,
         proc_dataset_path=str(tmp_path),
     )
 
@@ -86,10 +69,10 @@ def test_process_local_dataset(custom_dataset_half_split, tmp_path):
 
     train_tokenized_label_first = result["train"][0]["labels"]
     test_tokenized_label_last = result["test"][-1]["labels"]
-    train_text_label_first = tokenizer.decode(
+    train_text_label_first = processor.tokenizer.decode(
         train_tokenized_label_first, skip_special_tokens=True
     )
-    test_text_label_last = tokenizer.decode(
+    test_text_label_last = processor.tokenizer.decode(
         test_tokenized_label_last, skip_special_tokens=True
     )
 
@@ -98,7 +81,7 @@ def test_process_local_dataset(custom_dataset_half_split, tmp_path):
     assert test_text_label_last == custom_dataset_half_split["test"][-1]["sentence"]
 
     # Sample a few transformed audio values and make sure they are in a reasonable range
-    assert -100 < result["train"][0]["input_features"][0][10] < 100
-    assert -100 < result["train"][0]["input_features"][0][-1] < 100
-    assert -100 < result["test"][-1]["input_features"][-1][10] < 100
-    assert -100 < result["test"][-1]["input_features"][-1][-1] < 100
+    assert -100 < result["train"][0]["input_features"][0][10][20] < 100
+    assert -100 < result["train"][0]["input_features"][0][-1][5] < 100
+    assert -100 < result["test"][-1]["input_features"][-1][10][20] < 100
+    assert -100 < result["test"][-1]["input_features"][-1][-1][5] < 100
