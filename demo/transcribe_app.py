@@ -3,6 +3,7 @@ import gradio as gr
 import spaces
 from huggingface_hub import get_collection, HfApi
 from transformers import pipeline, Pipeline
+from transformers.models.whisper.tokenization_whisper import LANGUAGES
 
 is_hf_space = os.getenv("IS_HF_SPACE")
 
@@ -14,8 +15,14 @@ def get_dropdown_model_ids():
         "mozilla-ai/common-voice-whisper-67b847a74ad7561781aa10fd"
     ).items:
         model_metadata = HfApi().model_info(model_i.item_id)
-        language = model_metadata.card_data.model_name.split("on ")[1]
-        mozilla_ai_model_ids.append(model_i.item_id + f" ({language})")
+        language_code = model_metadata.card_data.language
+        # Sometimes the language metadata is saved in a list
+        language = (
+            LANGUAGES[language_code[0]]
+            if isinstance(language_code, list)
+            else LANGUAGES[language_code]
+        )
+        mozilla_ai_model_ids.append(model_i.item_id + f" ({language.capitalize()})")
 
     return (
         [""]
