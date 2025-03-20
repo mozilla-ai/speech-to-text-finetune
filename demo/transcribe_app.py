@@ -1,26 +1,33 @@
 import os
 import gradio as gr
 import spaces
-from huggingface_hub import get_collection
+from huggingface_hub import get_collection, HfApi
 from transformers import pipeline, Pipeline
 
 is_hf_space = os.getenv("IS_HF_SPACE")
-model_ids = (
-    [""]
-    + [
-        i.item_id + f" ({i.note})"
-        for i in get_collection(
-            "mozilla-ai/common-voice-whisper-67b847a74ad7561781aa10fd"
-        ).items
-    ]
-    + [
-        "openai/whisper-tiny (Multilingual)",
-        "openai/whisper-small (Multilingual)",
-        "openai/whisper-medium (Multilingual)",
-        "openai/whisper-large-v3 (Multilingual)",
-        "openai/whisper-large-v3-turbo (Multilingual)",
-    ]
-)
+
+
+def get_dropdown_model_ids():
+    mozilla_ai_model_ids = []
+    # Get model ids from collection and append the language in () from the model's metadata
+    for model_i in get_collection(
+        "mozilla-ai/common-voice-whisper-67b847a74ad7561781aa10fd"
+    ).items:
+        model_metadata = HfApi().model_info(model_i.item_id)
+        language = model_metadata.card_data.model_name.split("on ")[1]
+        mozilla_ai_model_ids.append(model_i.item_id + f" ({language})")
+
+    return (
+        [""]
+        + mozilla_ai_model_ids
+        + [
+            "openai/whisper-tiny (Multilingual)",
+            "openai/whisper-small (Multilingual)",
+            "openai/whisper-medium (Multilingual)",
+            "openai/whisper-large-v3 (Multilingual)",
+            "openai/whisper-large-v3-turbo (Multilingual)",
+        ]
+    )
 
 
 def _load_local_model(model_dir: str) -> Pipeline | str:
@@ -132,7 +139,7 @@ def setup_gradio_demo():
             """
         )
         ### Model selection ###
-
+        model_ids = get_dropdown_model_ids()
         with gr.Row():
             with gr.Column():
                 dropdown_model = gr.Dropdown(
