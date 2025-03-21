@@ -254,12 +254,11 @@ def process_dataset(
     dataset = dataset.map(
         _process_inputs_and_labels_for_whisper,
         fn_kwargs={"processor": processor},
-        remove_columns=dataset.column_names["train"],
         num_proc=1,
     )
 
     # Remove any sample longer than 30 seconds as it's not supported by whisper
-    dataset["train"] = dataset["train"].filter(
+    dataset = dataset.filter(
         _is_audio_in_length_range,
         input_columns=["input_length"],
     )
@@ -283,7 +282,7 @@ def _process_inputs_and_labels_for_whisper(
     batch = processor(
         audio=audio["array"],
         sampling_rate=audio["sampling_rate"],
-        text=batch["sentence"],
+        text=batch["transcription"],
     )
 
     batch["input_length"] = len(audio["array"]) / audio["sampling_rate"]
