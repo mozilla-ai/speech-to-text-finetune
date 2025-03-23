@@ -259,7 +259,7 @@ def process_dataset(
     )
 
     # Remove any sample longer than 30 seconds as it's not supported by whisper
-    dataset["train"] = dataset["train"].filter(
+    dataset = dataset.filter(
         _is_audio_in_length_range,
         input_columns=["input_length"],
     )
