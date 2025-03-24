@@ -29,7 +29,10 @@ def evaluate_fleurs(
     fp16: bool,
 ):
     logger.info(f"Loading Fleurs dataset for language: {language}")
-    dataset = load_dataset("google/fleurs", lang_code, trust_remote_code=True)["test"]
+
+    dataset = load_dataset(
+        "google/fleurs", lang_code, trust_remote_code=True, split="test"
+    )
 
     device = torch.cuda.get_device_name(0) if torch.cuda.is_available() else "CPU"
     logger.info(f"Loading {model_id} on {device} and configuring it for {language}.")
