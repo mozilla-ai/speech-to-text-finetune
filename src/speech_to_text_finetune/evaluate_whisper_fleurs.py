@@ -1,4 +1,3 @@
-from datasets import load_dataset
 from functools import partial
 
 from transformers import (
@@ -13,9 +12,8 @@ import evaluate
 from loguru import logger
 
 from speech_to_text_finetune.data_process import (
-    load_subset_of_dataset,
-    process_dataset,
     DataCollatorSpeechSeq2SeqWithPadding,
+    load_and_proc_hf_fleurs,
 )
 from speech_to_text_finetune.utils import compute_wer_cer_metrics
 
@@ -25,18 +23,12 @@ def evaluate_fleurs(
     lang_code: str,
     language: str,
     eval_batch_size: int,
-    n_eval_samples: int,
+    n_test_samples: int,
     fp16: bool,
 ):
-    logger.info(f"Loading Fleurs dataset for language: {language}")
-
-    dataset = load_dataset(
-        "google/fleurs", lang_code, trust_remote_code=True, split="test"
-    )
-
     device = torch.cuda.get_device_name(0) if torch.cuda.is_available() else "CPU"
     logger.info(f"Loading {model_id} on {device} and configuring it for {language}.")
-    # TODO: Load processed dataset if it exists!!
+
     processor = WhisperProcessor.from_pretrained(
         model_id, language=language, task="transcribe"
     )
@@ -46,11 +38,12 @@ def evaluate_fleurs(
         model.generate, language=language.lower(), task="transcribe", use_cache=True
     )
 
-    dataset = load_subset_of_dataset(dataset, n_samples=n_eval_samples)
-    dataset = process_dataset(
-        dataset=dataset,
+    logger.info(f"Loading Fleurs dataset for language: {language}")
+    dataset = load_and_proc_hf_fleurs(
+        language_id=lang_code,
+        n_test_samples=n_test_samples,
         processor=processor,
-        proc_dataset_path=f"fleurs_{lang_code}_{n_eval_samples}_samples",
+        eval_batch_size=eval_batch_size,
     )
 
     wer = evaluate.load("wer")
@@ -90,6 +83,6 @@ if __name__ == "__main__":
         lang_code="sw_ke",
         language="Swahili",
         eval_batch_size=8,
-        n_eval_samples=-1,
+        n_test_samples=-1,
         fp16=True,
     )
