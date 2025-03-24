@@ -94,6 +94,7 @@ def test_remove_long_audio_samples(mock_dataset, mock_whisper_processor, tmp_pat
     processed_dataset = process_dataset(
         dataset=mock_dataset,
         processor=mock_whisper_processor,
+        batch_size=1,
         proc_dataset_path=str(tmp_path),
     )
     assert len(processed_dataset["train"]) == 1
