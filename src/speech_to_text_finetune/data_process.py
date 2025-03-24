@@ -64,7 +64,6 @@ def _get_local_proc_dataset_path(dataset_id: str) -> str:
 def load_dataset_from_dataset_id(
     dataset_id: str,
     language_id: str | None = None,
-    local_train_split: float | None = 0.8,
 ) -> Tuple[DatasetDict, str]:
     """
     This function loads a dataset, based on the dataset_id and the content of its directory (if it is a local path).
@@ -78,7 +77,6 @@ def load_dataset_from_dataset_id(
     Args:
         dataset_id: Path to a processed dataset directory or local dataset directory or HuggingFace dataset ID.
         language_id (Only used for the HF dataset case): Language identifier for the dataset (e.g., 'en' for English)
-        local_train_split: (Only used for local custom datasets) Percentage split of train/test sets
 
     Returns:
         DatasetDict: A processed dataset ready for training with train/test splits
@@ -94,7 +92,7 @@ def load_dataset_from_dataset_id(
         pass
 
     try:
-        dataset = _load_custom_dataset(dataset_id, train_split=local_train_split)
+        dataset = _load_custom_dataset(dataset_id)
         return dataset, _get_local_proc_dataset_path(dataset_id)
     except FileNotFoundError:
         pass
@@ -157,20 +155,34 @@ def _load_local_common_voice(cv_data_dir: str) -> DatasetDict:
     train_df = pd.read_csv(cv_data_dir / "train.tsv", sep="\t")
     test_df = pd.read_csv(cv_data_dir / "test.tsv", sep="\t")
 
+    # Replace relative path with absolute
     train_df = train_df.rename(columns={"path": "audio"})
-    test_df = test_df.rename(columns={"path": "audio"})
+    train_df["audio"] = train_df["audio"].apply(
+        lambda p: str(cv_data_dir / "clips" / p)
+    )
 
-    dataset = DatasetDict(
+    test_df = test_df.rename(columns={"path": "audio"})
+    test_df["audio"] = test_df["audio"].apply(lambda p: str(cv_data_dir / "clips" / p))
+
+    return DatasetDict(
         {
             "train": Dataset.from_pandas(train_df),
             "test": Dataset.from_pandas(test_df),
         }
     )
 
-    return dataset
+
+def _get_audio_files_from_dir(dataset_dir: str) -> List[str]:
+    return sorted(
+        [
+            f"{dataset_dir}/{f}"
+            for f in os.listdir(f"{dataset_dir}")
+            if f.endswith(".wav") or f.endswith(".mp3")
+        ],
+    )
 
 
-def _load_custom_dataset(dataset_dir: str, train_split: float = 0.8) -> DatasetDict:
+def _load_custom_dataset(dataset_dir: str) -> DatasetDict:
     """
     Load sentences and accompanied recorded audio files into a pandas DataFrame, then split into train/test and finally
     load it into two distinct train Dataset and test Dataset.
@@ -179,30 +191,27 @@ def _load_custom_dataset(dataset_dir: str, train_split: float = 0.8) -> DatasetD
 
     Args:
         dataset_dir (str): path to the local dataset, expecting a text.csv and .wav files under the directory
-        train_split (float): percentage split of the dataset to train+validation and test set
 
     Returns:
         DatasetDict: HF Dataset dictionary that consists of two distinct Datasets (train+validation and test)
     """
-    text_file = dataset_dir + "/text.csv"
+    train_file = dataset_dir + "/train/text.csv"
+    train_dir = dataset_dir + "/train/clips"
+    test_file = dataset_dir + "/test/text.csv"
+    test_dir = dataset_dir + "/test/clips"
 
-    dataframe = pd.read_csv(text_file)
-    audio_files = sorted(
-        [
-            f"{dataset_dir}/{f}"
-            for f in os.listdir(dataset_dir)
-            if f.endswith(".wav") or f.endswith(".mp3")
-        ],
+    train_df = pd.read_csv(train_file)
+    test_df = pd.read_csv(test_file)
+
+    train_df["audio"] = _get_audio_files_from_dir(train_dir)
+    test_df["audio"] = _get_audio_files_from_dir(test_dir)
+
+    return DatasetDict(
+        {
+            "train": Dataset.from_pandas(train_df),
+            "test": Dataset.from_pandas(test_df),
+        }
     )
-
-    dataframe["audio"] = audio_files
-    train_index = round(len(dataframe) * train_split)
-
-    my_data = DatasetDict()
-    my_data["train"] = Dataset.from_pandas(dataframe[:train_index])
-    my_data["test"] = Dataset.from_pandas(dataframe[train_index:])
-
-    return my_data
 
 
 def load_subset_of_dataset(dataset: Dataset, n_samples: int) -> Dataset:

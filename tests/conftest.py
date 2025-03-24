@@ -26,9 +26,7 @@ def local_common_voice_data_path():
 
 @pytest.fixture(scope="session")
 def custom_dataset_half_split(custom_data_path):
-    return load_dataset_from_dataset_id(
-        dataset_id=custom_data_path, local_train_split=0.5
-    )[0]
+    return load_dataset_from_dataset_id(dataset_id=custom_data_path)[0]
 
 
 @pytest.fixture
@@ -38,7 +36,7 @@ def mock_whisper_processor():
     mock_processor.feature_extractor.sampling_rate = 16000
     mock_processor.side_effect = lambda audio, sampling_rate, text: {
         "input_features": [[0.1] * 80],
-        "labels": [1, 2, 3, 4],
+        "labels": [1],
         "sentence": text,
         "input_length": len(audio) / sampling_rate,
     }
