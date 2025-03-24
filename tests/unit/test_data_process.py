@@ -30,11 +30,9 @@ def test_try_find_processed_version_hf():
 
 def _assert_proper_dataset(dataset: DatasetDict) -> None:
     assert isinstance(dataset, DatasetDict)
-    assert "index" in dataset["train"].features
     assert "sentence" in dataset["train"].features
     assert "audio" in dataset["train"].features
 
-    assert "index" in dataset["test"].features
     assert "sentence" in dataset["test"].features
     assert "audio" in dataset["test"].features
 
@@ -54,49 +52,6 @@ def test_load_dataset_from_dataset_id_hf_cv(mock_load_hf_dataset):
         dataset_id="mozilla-foundation/common_voice_17_0", language_id="en"
     )
     _assert_proper_dataset(dataset)
-
-
-def test_load_local_common_voice_split(local_common_voice_data_path):
-    dataset, _ = load_dataset_from_dataset_id(
-        dataset_id=local_common_voice_data_path, local_train_split=0.5
-    )
-
-    assert len(dataset["train"]) == 1
-    assert len(dataset["test"]) == 1
-
-    assert dataset["train"][0]["sentence"] == "Example sentence"
-    assert (
-        dataset["train"][0]["audio"]
-        == f"{local_common_voice_data_path}/clips/an_example.mp3"
-    )
-
-    assert dataset["test"][-1]["sentence"] == "Another example sentence"
-    assert (
-        dataset["test"][-1]["audio"]
-        == f"{local_common_voice_data_path}/clips/an_example_2.mp3"
-    )
-
-
-def test_load_custom_dataset_default_split(custom_data_path):
-    dataset, _ = load_dataset_from_dataset_id(dataset_id=custom_data_path)
-
-    assert len(dataset["train"]) == 8
-    assert len(dataset["test"]) == 2
-
-    assert dataset["train"][0]["sentence"] == "GO DO YOU HEAR"
-    assert dataset["train"][0]["audio"] == f"{custom_data_path}/rec_0.wav"
-
-    assert dataset["test"][-1]["sentence"] == "DO YOU KNOW THE ASSASSIN ASKED MORREL"
-    assert dataset["test"][-1]["audio"] == f"{custom_data_path}/rec_9.wav"
-
-
-def test_load_custom_dataset_no_test(custom_data_path):
-    dataset, _ = load_dataset_from_dataset_id(
-        dataset_id=custom_data_path, local_train_split=1.0
-    )
-
-    assert len(dataset["train"]) == 10
-    assert len(dataset["test"]) == 0
 
 
 def test_load_subset_of_dataset_train(custom_dataset_half_split):
@@ -139,6 +94,7 @@ def test_remove_long_audio_samples(mock_dataset, mock_whisper_processor, tmp_pat
     processed_dataset = process_dataset(
         dataset=mock_dataset,
         processor=mock_whisper_processor,
+        batch_size=1,
         proc_dataset_path=str(tmp_path),
     )
     assert len(processed_dataset["train"]) == 1

@@ -20,12 +20,13 @@ from speech_to_text_finetune.data_process import (
     load_dataset_from_dataset_id,
     try_find_processed_version,
     process_dataset,
+    load_subset_of_dataset,
 )
-from speech_to_text_finetune.hf_utils import (
+from speech_to_text_finetune.utils import (
     get_hf_username,
     upload_custom_hf_model_card,
+    compute_wer_cer_metrics,
 )
-from speech_to_text_finetune.utils import compute_wer_cer_metrics
 
 
 def run_finetuning(
@@ -97,17 +98,21 @@ def run_finetuning(
             f"Loading processed dataset version of {cfg.dataset_id} and skipping processing."
         )
         dataset = proc_dataset
+        dataset["train"] = load_subset_of_dataset(dataset["train"], cfg.n_train_samples)
+        dataset["test"] = load_subset_of_dataset(dataset["test"], cfg.n_test_samples)
     else:
         logger.info(f"Loading {cfg.dataset_id}. Language selected {cfg.language}")
         dataset, save_proc_dataset_dir = load_dataset_from_dataset_id(
             dataset_id=cfg.dataset_id,
             language_id=language_id,
-            local_train_split=0.8,
         )
+        dataset["train"] = load_subset_of_dataset(dataset["train"], cfg.n_train_samples)
+        dataset["test"] = load_subset_of_dataset(dataset["test"], cfg.n_test_samples)
         logger.info("Processing dataset...")
         dataset = process_dataset(
             dataset=dataset,
             processor=processor,
+            batch_size=cfg.training_hp.per_device_train_batch_size,
             proc_dataset_path=save_proc_dataset_dir,
         )
         logger.info(
