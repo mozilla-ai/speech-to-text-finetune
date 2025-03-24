@@ -39,7 +39,7 @@ def test_load_proc_dataset_after_init_processing(
     process_dataset(
         dataset=dataset,
         processor=mock_whisper_processor,
-        batch_size=2,
+        batch_size=1,
         proc_dataset_path=proc_dataset_dir,
     )
     # Now try again to find and load the processed version
@@ -81,7 +81,7 @@ def test_process_local_dataset(custom_dataset_half_split, tmp_path):
     assert test_text_label_last == custom_dataset_half_split["test"][-1]["sentence"]
 
     # Sample a few transformed audio values and make sure they are in a reasonable range
-    assert -100 < result["train"][0]["input_features"][0][10][20] < 100
-    assert -100 < result["train"][0]["input_features"][0][-1][5] < 100
-    assert -100 < result["test"][-1]["input_features"][-1][10][20] < 100
-    assert -100 < result["test"][-1]["input_features"][-1][-1][5] < 100
+    assert -100 < result["train"][0]["input_features"][0][10] < 100
+    assert -100 < result["train"][0]["input_features"][0][-1] < 100
+    assert -100 < result["test"][-1]["input_features"][-1][10] < 100
+    assert -100 < result["test"][-1]["input_features"][-1][-1] < 100
