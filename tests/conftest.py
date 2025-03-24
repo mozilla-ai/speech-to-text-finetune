@@ -36,7 +36,7 @@ def mock_whisper_processor():
     mock_processor.feature_extractor.sampling_rate = 16000
     mock_processor.side_effect = lambda audio, sampling_rate, text: {
         "input_features": [[0.1] * 80],
-        "labels": [1, 2, 3, 4],
+        "labels": [1],
         "sentence": text,
         "input_length": len(audio) / sampling_rate,
     }
