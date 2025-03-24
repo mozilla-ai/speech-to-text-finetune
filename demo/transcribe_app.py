@@ -1,24 +1,36 @@
 import os
 import gradio as gr
 import spaces
+from huggingface_hub import get_collection, HfApi
 from transformers import pipeline, Pipeline
 
 is_hf_space = os.getenv("IS_HF_SPACE")
-model_ids = [
-    "",
-    "mozilla-ai/whisper-small-gl (Galician)",
-    "mozilla-ai/whisper-small-el (Greek)",
-    "mozilla-ai/whisper-small-fr (French)",
-    "mozilla-ai/whisper-small-sv (Swedish)",
-    "openai/whisper-tiny (Multilingual)",
-    "openai/whisper-small (Multilingual)",
-    "openai/whisper-medium (Multilingual)",
-    "openai/whisper-large-v3 (Multilingual)",
-    "openai/whisper-large-v3-turbo (Multilingual)",
-]
 
 
-def _load_local_model(model_dir: str) -> Pipeline:
+def get_dropdown_model_ids():
+    mozilla_ai_model_ids = []
+    # Get model ids from collection and append the language in () from the model's metadata
+    for model_i in get_collection(
+        "mozilla-ai/common-voice-whisper-67b847a74ad7561781aa10fd"
+    ).items:
+        model_metadata = HfApi().model_info(model_i.item_id)
+        language = model_metadata.card_data.model_name.split("on ")[1]
+        mozilla_ai_model_ids.append(model_i.item_id + f" ({language})")
+
+    return (
+        [""]
+        + mozilla_ai_model_ids
+        + [
+            "openai/whisper-tiny (Multilingual)",
+            "openai/whisper-small (Multilingual)",
+            "openai/whisper-medium (Multilingual)",
+            "openai/whisper-large-v3 (Multilingual)",
+            "openai/whisper-large-v3-turbo (Multilingual)",
+        ]
+    )
+
+
+def _load_local_model(model_dir: str) -> Pipeline | str:
     from transformers import WhisperProcessor, WhisperForConditionalGeneration
 
     processor = WhisperProcessor.from_pretrained(model_dir)
@@ -29,19 +41,43 @@ def _load_local_model(model_dir: str) -> Pipeline:
             task="automatic-speech-recognition",
             model=model,
             processor=processor,
+            chunk_length_s=30,  # max input duration for whisper
         )
     except Exception as e:
         return str(e)
 
 
-def _load_hf_model(model_repo_id: str) -> Pipeline:
+def _load_hf_model(model_repo_id: str) -> Pipeline | str:
     try:
         return pipeline(
             "automatic-speech-recognition",
             model=model_repo_id,
+            chunk_length_s=30,  # max input duration for whisper
         )
     except Exception as e:
         return str(e)
+
+
+# Copied from https://github.com/openai/whisper/blob/517a43ecd132a2089d85f4ebc044728a71d49f6e/whisper/utils.py#L50
+def format_timestamp(
+    seconds: float, always_include_hours: bool = False, decimal_marker: str = "."
+):
+    assert seconds >= 0, "non-negative timestamp expected"
+    milliseconds = round(seconds * 1000.0)
+
+    hours = milliseconds // 3_600_000
+    milliseconds -= hours * 3_600_000
+
+    minutes = milliseconds // 60_000
+    milliseconds -= minutes * 60_000
+
+    seconds = milliseconds // 1_000
+    milliseconds -= seconds * 1_000
+
+    hours_marker = f"{hours:02d}:" if always_include_hours or hours > 0 else ""
+    return (
+        f"{hours_marker}{minutes:02d}:{seconds:02d}{decimal_marker}{milliseconds:03d}"
+    )
 
 
 @spaces.GPU(duration=30)
@@ -50,6 +86,7 @@ def transcribe(
     hf_model_id: str,
     local_model_id: str,
     audio: gr.Audio,
+    show_timestamps: bool,
 ) -> str:
     if dropdown_model_id and not hf_model_id and not local_model_id:
         dropdown_model_id = dropdown_model_id.split(" (")[0]
@@ -65,7 +102,21 @@ def transcribe(
     if isinstance(pipe, str):
         # Exception raised when loading
         return f"⚠️ Error: {pipe}"
-    text = pipe(audio)["text"]
+
+    output = pipe(
+        audio,
+        generate_kwargs={"task": "transcribe"},
+        batch_size=16,
+        return_timestamps=show_timestamps,
+    )
+    text = output["text"]
+    if show_timestamps:
+        timestamps = output["chunks"]
+        timestamps = [
+            f"[{format_timestamp(chunk['timestamp'][0])} -> {format_timestamp(chunk['timestamp'][1])}] {chunk['text']}"
+            for chunk in timestamps
+        ]
+        text = "\n".join(str(feature) for feature in timestamps)
     return text
 
 
@@ -79,7 +130,7 @@ def setup_gradio_demo():
             """
         )
         ### Model selection ###
-
+        model_ids = get_dropdown_model_ids()
         with gr.Row():
             with gr.Column():
                 dropdown_model = gr.Dropdown(
@@ -97,19 +148,27 @@ def setup_gradio_demo():
                 )
 
         ### Transcription ###
-        audio_input = gr.Audio(
-            sources=["microphone", "upload"],
-            type="filepath",
-            label="Record a message / Upload audio file",
-            show_download_button=True,
-            max_length=30,
-        )
+        with gr.Group():
+            audio_input = gr.Audio(
+                sources=["microphone", "upload"],
+                type="filepath",
+                label="Record a message / Upload audio file",
+                show_download_button=True,
+            )
+            timestamps_check = gr.Checkbox(label="Show timestamps")
+
         transcribe_button = gr.Button("Transcribe")
         transcribe_output = gr.Text(label="Output")
 
         transcribe_button.click(
             fn=transcribe,
-            inputs=[dropdown_model, user_model, local_model, audio_input],
+            inputs=[
+                dropdown_model,
+                user_model,
+                local_model,
+                audio_input,
+                timestamps_check,
+            ],
             outputs=transcribe_output,
         )
 
