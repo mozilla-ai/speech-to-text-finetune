@@ -35,9 +35,7 @@ def test_load_proc_dataset_after_init_processing(
     assert dataset is None
 
     # Load, process the dataset and save it under proc_dataset_dir
-    dataset, proc_dataset_dir = load_dataset_from_dataset_id(
-        dataset_id=dataset_id, local_train_split=0.5
-    )
+    dataset, proc_dataset_dir = load_dataset_from_dataset_id(dataset_id=dataset_id)
     process_dataset(
         dataset=dataset,
         processor=mock_whisper_processor,
