@@ -41,6 +41,7 @@ def test_load_proc_dataset_after_init_processing(
     process_dataset(
         dataset=dataset,
         processor=mock_whisper_processor,
+        batch_size=2,
         proc_dataset_path=proc_dataset_dir,
     )
     # Now try again to find and load the processed version
@@ -61,6 +62,7 @@ def test_process_local_dataset(custom_dataset_half_split, tmp_path):
     result = process_dataset(
         custom_dataset_half_split,
         processor=processor,
+        batch_size=2,
         proc_dataset_path=str(tmp_path),
     )
 

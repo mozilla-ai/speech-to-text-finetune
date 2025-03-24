@@ -112,6 +112,7 @@ def run_finetuning(
         dataset = process_dataset(
             dataset=dataset,
             processor=processor,
+            batch_size=cfg.training_hp.per_device_train_batch_size,
             proc_dataset_path=save_proc_dataset_dir,
         )
         logger.info(

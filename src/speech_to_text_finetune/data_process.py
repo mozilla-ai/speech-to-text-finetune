@@ -219,6 +219,7 @@ def _is_audio_in_length_range(length: float, max_input_length: float = 30.0):
 def process_dataset(
     dataset: DatasetDict,
     processor: WhisperProcessor,
+    batch_size: int,
     proc_dataset_path: str,
 ) -> DatasetDict:
     """
@@ -233,6 +234,8 @@ def process_dataset(
         _process_inputs_and_labels_for_whisper,
         fn_kwargs={"processor": processor},
         remove_columns=dataset.column_names["train"],
+        batched=True,
+        batch_size=batch_size,
         num_proc=1,
     )
 
@@ -256,15 +259,17 @@ def _process_inputs_and_labels_for_whisper(
      and the tokenizer to transform the text-label into tokens. This function is expected to be called using
      the .map method in order to process the data batch by batch.
     """
-    audio = batch["audio"]
+    batched_audio = batch["audio"]
 
     batch = processor(
-        audio=audio["array"],
-        sampling_rate=audio["sampling_rate"],
+        audio=[audio["array"] for audio in batched_audio],
+        sampling_rate=processor.feature_extractor.sampling_rate,
         text=batch["sentence"],
     )
 
-    batch["input_length"] = len(audio["array"]) / audio["sampling_rate"]
+    batch["input_length"] = [
+        len(audio["array"]) / audio["sampling_rate"] for audio in batched_audio
+    ]
 
     return batch
 
@@ -284,7 +289,7 @@ class DataCollatorSpeechSeq2SeqWithPadding:
         # split inputs and labels since they have to be of different lengths and need different padding methods
         # first treat the audio inputs by simply returning torch tensors
         input_features = [
-            {"input_features": feature["input_features"][0]} for feature in features
+            {"input_features": feature["input_features"]} for feature in features
         ]
         batch = self.processor.feature_extractor.pad(
             input_features, return_tensors="pt"
