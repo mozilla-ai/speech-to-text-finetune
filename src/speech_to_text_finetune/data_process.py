@@ -198,7 +198,7 @@ def _load_custom_dataset(dataset_dir: str) -> DatasetDict:
     train_file = dataset_dir + "/train/text.csv"
     train_dir = dataset_dir + "/train/clips"
     test_file = dataset_dir + "/test/text.csv"
-    test_dir = dataset_dir + "/test"
+    test_dir = dataset_dir + "/test/clips"
 
     train_df = pd.read_csv(train_file)
     test_df = pd.read_csv(test_file)
