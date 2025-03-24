@@ -78,7 +78,7 @@ def load_dataset_from_dataset_id(
     Args:
         dataset_id: Path to a processed dataset directory or local dataset directory or HuggingFace dataset ID.
         language_id (Only used for the HF dataset case): Language identifier for the dataset (e.g., 'en' for English)
-        local_train_split: (Only used for local datasets) Percentage split of train/test sets
+        local_train_split: (Only used for local custom datasets) Percentage split of train/test sets
 
     Returns:
         DatasetDict: A processed dataset ready for training with train/test splits
@@ -88,7 +88,7 @@ def load_dataset_from_dataset_id(
         ValueError: If the dataset cannot be found locally or on HuggingFace
     """
     try:
-        dataset = _load_local_common_voice(dataset_id, train_split=local_train_split)
+        dataset = _load_local_common_voice(dataset_id)
         return dataset, _get_local_proc_dataset_path(dataset_id)
     except FileNotFoundError:
         pass
@@ -142,50 +142,28 @@ def _load_hf_common_voice(dataset_id: str, language_id: str) -> DatasetDict:
     return common_voice
 
 
-def _load_local_common_voice(cv_data_dir: str, train_split: float = 0.8) -> DatasetDict:
+def _load_local_common_voice(cv_data_dir: str) -> DatasetDict:
     """
     Load a local Common Voice dataset (as downloaded from the official Common Voice website) into a DatasetDict.
     We only use the validated.tsv file to source the data to use for both training and testing.
 
     Args:
         cv_data_dir (str): path to the local Common Voice dataset directory
-        train_split (str): percentage split of the dataset to train+validation and test set
 
     Returns:
         DatasetDict: HF Dataset dictionary that consists of two distinct Datasets (train+validation and test)
     """
     cv_data_dir = Path(cv_data_dir)
-    validated_df = pd.read_csv(cv_data_dir / "validated_sentences.tsv", sep="\t")
-    other_df = pd.read_csv(cv_data_dir / "other.tsv", sep="\t")
+    train_df = pd.read_csv(cv_data_dir / "train.tsv", sep="\t")
+    test_df = pd.read_csv(cv_data_dir / "test.tsv", sep="\t")
 
-    # Map sentence_id to sentences to then use the sentence_id to pull the correct audio path from other.tsv
-    sentence_map = dict(zip(validated_df["sentence_id"], validated_df["sentence"]))
-
-    # Filter out the rows that don't have a corresponding sentence_id in the sentence_map
-    other_df = other_df[other_df["sentence_id"].isin(sentence_map)]
-
-    # Write the full audio clip path
-    other_df["audio_clip_path"] = other_df["path"].apply(
-        lambda p: cv_data_dir / "clips" / p
-    )
-
-    dataset_df = pd.DataFrame(
-        {
-            "index": other_df.index,
-            "sentence": other_df["sentence_id"].map(
-                lambda i: sentence_map[i].replace('"', "")
-            ),  # remove " characters
-            "audio": other_df["audio_clip_path"].astype(str),
-            "sentence_id": other_df["sentence_id"],
-        }
-    )
-
-    train_index = round(len(dataset_df) * train_split)
+    train_df = train_df.rename(columns={"path": "audio"})
+    test_df = test_df.rename(columns={"path": "audio"})
 
     dataset = DatasetDict(
         {
-            "train": Dataset.from_pandas(dataset_df.iloc[:train_index]),
-            "test": Dataset.from_pandas(dataset_df.iloc[train_index:]),
+            "train": Dataset.from_pandas(train_df),
+            "test": Dataset.from_pandas(test_df),
         }
     )
 
