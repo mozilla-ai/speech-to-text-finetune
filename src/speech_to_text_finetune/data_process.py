@@ -155,6 +155,7 @@ def _load_local_common_voice(cv_data_dir: str) -> DatasetDict:
     train_df = pd.read_csv(cv_data_dir / "train.tsv", sep="\t")
     test_df = pd.read_csv(cv_data_dir / "test.tsv", sep="\t")
 
+    # Replace relative path with absolute
     train_df = train_df.rename(columns={"path": "audio"})
     train_df["audio"] = train_df["audio"].apply(
         lambda p: str(cv_data_dir / "clips" / p)
@@ -163,14 +164,22 @@ def _load_local_common_voice(cv_data_dir: str) -> DatasetDict:
     test_df = test_df.rename(columns={"path": "audio"})
     test_df["audio"] = test_df["audio"].apply(lambda p: str(cv_data_dir / "clips" / p))
 
-    dataset = DatasetDict(
+    return DatasetDict(
         {
             "train": Dataset.from_pandas(train_df),
             "test": Dataset.from_pandas(test_df),
         }
     )
 
-    return dataset
+
+def _get_audio_files_from_dir(dataset_dir: str) -> List[str]:
+    return sorted(
+        [
+            f"{dataset_dir}/{f}"
+            for f in os.listdir(f"{dataset_dir}")
+            if f.endswith(".wav") or f.endswith(".mp3")
+        ],
+    )
 
 
 def _load_custom_dataset(dataset_dir: str) -> DatasetDict:
@@ -187,34 +196,22 @@ def _load_custom_dataset(dataset_dir: str) -> DatasetDict:
         DatasetDict: HF Dataset dictionary that consists of two distinct Datasets (train+validation and test)
     """
     train_file = dataset_dir + "/train/text.csv"
+    train_dir = dataset_dir + "/train/clips"
     test_file = dataset_dir + "/test/text.csv"
+    test_dir = dataset_dir + "/test"
 
     train_df = pd.read_csv(train_file)
     test_df = pd.read_csv(test_file)
 
-    train_audio_files = sorted(
-        [
-            f"{dataset_dir}/train/clips/{f}"
-            for f in os.listdir(f"{dataset_dir}/train/clips")
-            if f.endswith(".wav") or f.endswith(".mp3")
-        ],
+    train_df["audio"] = _get_audio_files_from_dir(train_dir)
+    test_df["audio"] = _get_audio_files_from_dir(test_dir)
+
+    return DatasetDict(
+        {
+            "train": Dataset.from_pandas(train_df),
+            "test": Dataset.from_pandas(test_df),
+        }
     )
-    train_df["audio"] = train_audio_files
-
-    test_audio_files = sorted(
-        [
-            f"{dataset_dir}/test/clips/{f}"
-            for f in os.listdir(f"{dataset_dir}/test/clips")
-            if f.endswith(".wav") or f.endswith(".mp3")
-        ],
-    )
-    test_df["audio"] = test_audio_files
-
-    my_data = DatasetDict()
-    my_data["train"] = Dataset.from_pandas(train_df)
-    my_data["test"] = Dataset.from_pandas(test_df)
-
-    return my_data
 
 
 def load_subset_of_dataset(dataset: Dataset, n_samples: int) -> Dataset:
