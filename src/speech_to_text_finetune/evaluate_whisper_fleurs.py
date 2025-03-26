@@ -35,7 +35,10 @@ def evaluate_fleurs(
     model = WhisperForConditionalGeneration.from_pretrained(model_id)
     # set language and task for generation during inference and re-enable cache
     model.generate = partial(
-        model.generate, language=language.lower(), task="transcribe", use_cache=True
+        model.generate,
+        language=language.lower(),
+        task="transcribe",
+        use_cache=True,
     )
 
     logger.info(f"Loading Fleurs dataset for language: {language}")
@@ -56,7 +59,6 @@ def evaluate_fleurs(
             fp16=fp16,
             per_device_eval_batch_size=eval_batch_size,
             predict_with_generate=True,
-            generation_max_length=225,
         ),
         model=model,
         eval_dataset=dataset,

@@ -265,11 +265,12 @@ def load_subset_of_dataset(dataset: Dataset, n_samples: int) -> Dataset:
     return dataset.select(range(n_samples)) if n_samples != -1 else dataset
 
 
-def _is_audio_in_length_range(length: float, max_input_length: float = 30.0):
-    """
-    Whisper models can only process audio samples that are less than 30 seconds long.
-    """
-    return length < max_input_length
+def _is_audio_in_length_range(length: float, max_input_length: float = 30.0) -> bool:
+    return 0 < length < max_input_length
+
+
+def _are_labels_in_length_range(labels: List[int], max_label_length: int = 448) -> bool:
+    return len(labels) < max_label_length
 
 
 def process_dataset(
@@ -297,10 +298,17 @@ def process_dataset(
         num_proc=1,
     )
 
-    # Remove any sample longer than 30 seconds as it's not supported by whisper
     dataset = dataset.filter(
         _is_audio_in_length_range,
         input_columns=["input_length"],
+        fn_kwargs={"max_input_length": 30.0},
+        num_proc=1,
+    )
+    dataset = dataset.filter(
+        _are_labels_in_length_range,
+        input_columns=["labels"],
+        fn_kwargs={"max_label_length": 448},
+        num_proc=1,
     )
 
     proc_dataset_path = Path(proc_dataset_path)
