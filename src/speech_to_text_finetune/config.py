@@ -43,7 +43,7 @@ class Config(BaseModel):
         model_id: HF model id of a Whisper model used for finetuning
         dataset_id: HF dataset id of a Common Voice dataset version, ideally from the mozilla-foundation repo
         language: registered language string that is supported by the Common Voice dataset.
-            Setting it to "Multi" will ignore the language configuration for the Whisper Tokenizer
+            Setting it to "Multilingual" will ignore the language configuration for the Whisper Tokenizer
         repo_name: used both for local dir and HF, "default" will create a name based on the model and language id
         n_train_samples: explicitly set how many samples to train+validate on. If -1, use all train+val data available
         n_test_samples: explicitly set how many samples to evaluate on. If -1, use all eval data available

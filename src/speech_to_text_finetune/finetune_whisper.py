@@ -42,7 +42,7 @@ def run_finetuning(
     """
     cfg = load_config(config_path)
 
-    if cfg.language == "Multi":
+    if cfg.language == "Multilingual":
         language_id = "multilingual"
         language = None
     else:
