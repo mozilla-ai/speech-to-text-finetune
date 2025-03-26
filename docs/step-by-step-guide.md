@@ -116,6 +116,13 @@ python demo/model_comparison_app.py
 3. Select a comparison model, for example your finetuned model.
 4. Record a sample of your voice and get two transcriptions back side-by-side for an easier manual evaluation.
 
+### Step 7 - Evaluate a model on the Fleurs dataset on a specific language
+
+1. Configure the arguments through the command line according to your needs and execute the command below
+ ```bash
+python evaluate_whisper.py --model_id openai/whisper-tiny --lang_code sw_ke --language Swahili --eval_batch_size 8 --n_test_samples -1 --fp16 True
+```
+
 
 ## 🎨 **Customizing the Blueprint**
 
