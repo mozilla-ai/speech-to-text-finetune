@@ -42,7 +42,12 @@ def run_finetuning(
     """
     cfg = load_config(config_path)
 
-    language_id = LANGUAGES_NAME_TO_ID[cfg.language]
+    if cfg.language == "Multi":
+        language_id = "multilingual"
+        language = None
+    else:
+        language_id = LANGUAGES_NAME_TO_ID[cfg.language]
+        language = cfg.language.lower()
 
     if cfg.repo_name == "default":
         cfg.repo_name = f"{cfg.model_id.split('/')[1]}-{language_id}"
@@ -64,14 +69,14 @@ def run_finetuning(
     )
     feature_extractor = WhisperFeatureExtractor.from_pretrained(cfg.model_id)
     tokenizer = WhisperTokenizer.from_pretrained(
-        cfg.model_id, language=cfg.language, task="transcribe"
+        cfg.model_id, language=language, task="transcribe"
     )
     processor = WhisperProcessor.from_pretrained(
-        cfg.model_id, language=cfg.language, task="transcribe"
+        cfg.model_id, language=language, task="transcribe"
     )
     model = WhisperForConditionalGeneration.from_pretrained(cfg.model_id)
 
-    model.generation_config.language = cfg.language.lower()
+    model.generation_config.language = language
     model.generation_config.task = "transcribe"
     model.generation_config.forced_decoder_ids = None
 
