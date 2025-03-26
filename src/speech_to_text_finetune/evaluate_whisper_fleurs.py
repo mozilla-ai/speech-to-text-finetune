@@ -1,3 +1,4 @@
+import argparse
 from functools import partial
 
 from transformers import (
@@ -28,6 +29,9 @@ def evaluate_fleurs(
 ):
     device = torch.cuda.get_device_name(0) if torch.cuda.is_available() else "CPU"
     logger.info(f"Loading {model_id} on {device} and configuring it for {language}.")
+    if fp16 and not torch.cuda.is_available():
+        logger.warning("FP16 is enabled but no GPU is available. Disabling FP16.")
+        fp16 = False
 
     processor = WhisperProcessor.from_pretrained(
         model_id, language=language, task="transcribe"
@@ -80,11 +84,38 @@ def evaluate_fleurs(
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(
+        description="Evaluate Whisper model on Fleurs dataset"
+    )
+    parser.add_argument(
+        "--model_id", type=str, default="openai/whisper-tiny", help="Model identifier"
+    )
+    parser.add_argument(
+        "--lang_code", type=str, default="sw_ke", help="Language code for the dataset"
+    )
+    parser.add_argument(
+        "--language", type=str, default="Swahili", help="Language for transcription"
+    )
+    parser.add_argument(
+        "--eval_batch_size", type=int, default=8, help="Batch size for evaluation"
+    )
+    parser.add_argument(
+        "--n_test_samples",
+        type=int,
+        default=-1,
+        help="Number of test samples to use (-1 for all)",
+    )
+    parser.add_argument(
+        "--fp16", type=bool, default=True, help="Enable FP16 precision if GPU available"
+    )
+
+    args = parser.parse_args()
+
     evaluate_fleurs(
-        model_id="openai/whisper-tiny",
-        lang_code="sw_ke",
-        language="Swahili",
-        eval_batch_size=8,
-        n_test_samples=-1,
-        fp16=True,
+        model_id=args.model_id,
+        lang_code=args.lang_code,
+        language=args.language,
+        eval_batch_size=args.eval_batch_size,
+        n_test_samples=args.n_test_samples,
+        fp16=args.fp16,
     )
