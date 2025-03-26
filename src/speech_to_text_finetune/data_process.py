@@ -221,7 +221,7 @@ def load_and_proc_hf_fleurs(
     eval_batch_size: int,
 ) -> Dataset:
     """
-    Load only the test split of fleurs on a specific language.
+    Load only the test split of fleurs on a specific language and process it for Whisper.
     Args:
         language_id (str): a registered language identifier from Fleurs
             (see https://huggingface.co/datasets/google/fleurs/blob/main/fleurs.py)
