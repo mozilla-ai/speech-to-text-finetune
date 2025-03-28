@@ -25,7 +25,7 @@ These docs are your companion to mastering the **Speech-to-Text Finetune Bluepri
 
 ### 🎨 **Make It Yours**
 #### _Customize the Blueprint to fit your needs:_
-- **[Customization Guide](customization.md):** Coming Soon
+- **[Customization Guide](customization.md):** Bring Your Own Dataset!
 
 ### 🌟 **Join the Community**
 #### _Help shape the future of Blueprints:_
