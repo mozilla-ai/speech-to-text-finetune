@@ -81,16 +81,24 @@ def mock_dataset():
         "audio": [
             {"array": [0.0] * 16000 * 31, "sampling_rate": 16000},  # 31 seconds
             {"array": [0.0] * 16000 * 29, "sampling_rate": 16000},  # 29 seconds
+            {"array": [0.0] * 16000 * 29, "sampling_rate": 16000},  # 29 seconds
         ],
         "sentence": [
             "This is an invalid audio sample.",
             "This is a valid audio sample.",
+            "This is a really long text. So long that its actually impossible for Whisper to fully generate such a "
+            "long text, meaning that this text should be removed from the dataset. Yeap. Exactly. Completely removed."
+            "But actually, because we are mocking the processor, and we are just returning as tokenized labels, this"
+            "text itself as-is (see how mock_whisper_processor is implemented), its this text itself that needs to be "
+            "longer than 448 (the max generation length of whisper) not the tokenized version of it.",
         ],
     }
     return DatasetDict({"train": Dataset.from_dict(data)})
 
 
-def test_remove_long_audio_samples(mock_dataset, mock_whisper_processor, tmp_path):
+def test_remove_long_audio_and_transcription_samples(
+    mock_dataset, mock_whisper_processor, tmp_path
+):
     processed_dataset = process_dataset(
         dataset=mock_dataset,
         processor=mock_whisper_processor,

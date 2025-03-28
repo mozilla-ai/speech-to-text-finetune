@@ -17,7 +17,7 @@ from loguru import logger
 
 def try_find_processed_version(
     dataset_id: str, language_id: str | None = None
-) -> DatasetDict | None:
+) -> DatasetDict | Dataset | None:
     """
     Try to load a processed version of the dataset if it exists locally. Check if:
     1. The dataset_id is a local path to an already processed dataset directory.
@@ -214,23 +214,71 @@ def _load_custom_dataset(dataset_dir: str) -> DatasetDict:
     )
 
 
+def load_and_proc_hf_fleurs(
+    language_id: str,
+    n_test_samples: int,
+    processor: WhisperProcessor,
+    eval_batch_size: int,
+) -> Dataset:
+    """
+    Load only the test split of fleurs on a specific language and process it for Whisper.
+    Args:
+        language_id (str): a registered language identifier from Fleurs
+            (see https://huggingface.co/datasets/google/fleurs/blob/main/fleurs.py)
+        n_test_samples (int): number of samples to use from the test split
+        processor (WhisperProcessor): Processor from Whisper to process the dataset
+        eval_batch_size (int): batch size to use for processing the dataset
+
+    Returns:
+        DatasetDict: HF Dataset
+    """
+    fleurs_dataset_id = "google/fleurs"
+    if proc_dataset := try_find_processed_version(fleurs_dataset_id, language_id):
+        return proc_dataset
+
+    dataset = load_dataset(
+        fleurs_dataset_id, language_id, trust_remote_code=True, split="test"
+    )
+    dataset = load_subset_of_dataset(dataset, n_test_samples)
+
+    dataset = dataset.rename_column(
+        original_column_name="raw_transcription", new_column_name="sentence"
+    )
+    dataset = dataset.select_columns(["audio", "sentence"])
+
+    save_proc_dataset_path = _get_hf_proc_dataset_path(fleurs_dataset_id, language_id)
+    logger.info("Processing dataset...")
+    dataset = process_dataset(
+        dataset=dataset,
+        processor=processor,
+        batch_size=eval_batch_size,
+        proc_dataset_path=save_proc_dataset_path,
+    )
+    logger.info(
+        f"Processed dataset saved at {save_proc_dataset_path}. Future runs of {fleurs_dataset_id} will "
+        f"automatically use this processed version."
+    )
+    return dataset
+
+
 def load_subset_of_dataset(dataset: Dataset, n_samples: int) -> Dataset:
     return dataset.select(range(n_samples)) if n_samples != -1 else dataset
 
 
-def _is_audio_in_length_range(length: float, max_input_length: float = 30.0):
-    """
-    Whisper models can only process audio samples that are less than 30 seconds long.
-    """
-    return length < max_input_length
+def _is_audio_in_length_range(length: float, max_input_length: float = 30.0) -> bool:
+    return 0 < length < max_input_length
+
+
+def _are_labels_in_length_range(labels: List[int], max_label_length: int = 448) -> bool:
+    return len(labels) < max_label_length
 
 
 def process_dataset(
-    dataset: DatasetDict,
+    dataset: DatasetDict | Dataset,
     processor: WhisperProcessor,
     batch_size: int,
     proc_dataset_path: str,
-) -> DatasetDict:
+) -> DatasetDict | Dataset:
     """
     Process dataset to the expected format by a Whisper model and then save it locally for future use.
     """
@@ -242,16 +290,25 @@ def process_dataset(
     dataset = dataset.map(
         _process_inputs_and_labels_for_whisper,
         fn_kwargs={"processor": processor},
-        remove_columns=dataset.column_names["train"],
+        remove_columns=dataset.column_names["train"]
+        if "train" in dataset.column_names
+        else None,
         batched=True,
         batch_size=batch_size,
         num_proc=1,
     )
 
-    # Remove any sample longer than 30 seconds as it's not supported by whisper
     dataset = dataset.filter(
         _is_audio_in_length_range,
         input_columns=["input_length"],
+        fn_kwargs={"max_input_length": 30.0},
+        num_proc=1,
+    )
+    dataset = dataset.filter(
+        _are_labels_in_length_range,
+        input_columns=["labels"],
+        fn_kwargs={"max_label_length": 448},
+        num_proc=1,
     )
 
     proc_dataset_path = Path(proc_dataset_path)
