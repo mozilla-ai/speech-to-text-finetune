@@ -404,6 +404,15 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#step-7-evaluate-a-model-on-the-fleurs-dataset-on-a-specific-language" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 7 - Evaluate a model on the Fleurs dataset on a specific language
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -597,6 +606,15 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#step-7-evaluate-a-model-on-the-fleurs-dataset-on-a-specific-language" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 7 - Evaluate a model on the Fleurs dataset on a specific language
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -761,6 +779,12 @@ python demo/transcribe_app.py
 <li>Select a baseline model, for example the model you used as a base for finetuning.</li>
 <li>Select a comparison model, for example your finetuned model.</li>
 <li>Record a sample of your voice and get two transcriptions back side-by-side for an easier manual evaluation.</li>
+</ol>
+<h3 id="step-7-evaluate-a-model-on-the-fleurs-dataset-on-a-specific-language">Step 7 - Evaluate a model on the Fleurs dataset on a specific language</h3>
+<ol>
+<li>Configure the arguments through the command line according to your needs and execute the command below
+ <code>bash
+python evaluate_whisper.py --model_id openai/whisper-tiny --lang_code sw_ke --language Swahili --eval_batch_size 8 --n_test_samples -1 --fp16 True</code></li>
 </ol>
 <h2 id="customizing-the-blueprint">🎨 <strong>Customizing the Blueprint</strong></h2>
 <p>To better understand how you can tailor this Blueprint to suit your specific needs, please visit the <strong><a href="../customization/">Customization Guide</a></strong>.</p>
