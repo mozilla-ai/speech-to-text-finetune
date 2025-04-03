@@ -24,7 +24,7 @@ from speech_to_text_finetune.data_process import (
 )
 from speech_to_text_finetune.utils import (
     get_hf_username,
-    upload_custom_hf_model_card,
+    create_model_card,
     compute_wer_cer_metrics,
 )
 
@@ -162,21 +162,22 @@ def run_finetuning(
     logger.info(f"Start evaluation on {dataset['test'].num_rows} audio samples.")
     eval_results = trainer.evaluate()
     logger.info(f"Evaluation complete. Results:\n\t {eval_results}")
+    model_card = create_model_card(
+        model_id=cfg.model_id,
+        dataset_id=cfg.dataset_id,
+        language_id=language_id,
+        language=cfg.language,
+        n_train_samples=dataset["train"].num_rows,
+        n_eval_samples=dataset["test"].num_rows,
+        baseline_eval_results=baseline_eval_results,
+        ft_eval_results=eval_results,
+    )
+    model_card.save(f"{local_output_dir}/README.md")
 
     if cfg.training_hp.push_to_hub:
         logger.info(f"Uploading model and eval results to HuggingFace: {hf_repo_name}")
         trainer.push_to_hub()
-        upload_custom_hf_model_card(
-            hf_repo_name=hf_repo_name,
-            model_id=cfg.model_id,
-            dataset_id=cfg.dataset_id,
-            language_id=language_id,
-            language=cfg.language,
-            n_train_samples=dataset["train"].num_rows,
-            n_eval_samples=dataset["test"].num_rows,
-            baseline_eval_results=baseline_eval_results,
-            ft_eval_results=eval_results,
-        )
+        model_card.push_to_hub(hf_repo_name)
 
     logger.info(f"Find your final, best performing model at {local_output_dir}")
     return baseline_eval_results, eval_results
