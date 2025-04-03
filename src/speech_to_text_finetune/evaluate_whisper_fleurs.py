@@ -116,7 +116,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--update_hf_repo",
         type=bool,
-        default=True,
+        default=False,
         help="Update the HF Model Card repo with the FLEURS evaluation results",
     )
 
