@@ -1,5 +1,6 @@
 import argparse
 from functools import partial
+from typing import Dict
 
 from transformers import (
     Seq2SeqTrainer,
@@ -16,7 +17,10 @@ from speech_to_text_finetune.data_process import (
     DataCollatorSpeechSeq2SeqWithPadding,
     load_and_proc_hf_fleurs,
 )
-from speech_to_text_finetune.utils import compute_wer_cer_metrics
+from speech_to_text_finetune.utils import (
+    compute_wer_cer_metrics,
+    update_hf_model_card_with_fleurs_results,
+)
 
 
 def evaluate_fleurs(
@@ -26,7 +30,7 @@ def evaluate_fleurs(
     eval_batch_size: int,
     n_test_samples: int,
     fp16: bool,
-):
+) -> Dict:
     device = torch.cuda.get_device_name(0) if torch.cuda.is_available() else "CPU"
     logger.info(f"Loading {model_id} on {device} and configuring it for {language}.")
     if fp16 and not torch.cuda.is_available():
@@ -80,6 +84,7 @@ def evaluate_fleurs(
     logger.info(f"Start evaluation on {dataset.num_rows} audio samples.")
     eval_results = trainer.evaluate()
     logger.info(f"Evaluation complete. Results:\n\t {eval_results}")
+    eval_results["n_eval_samples"] = len(dataset)
     return eval_results
 
 
@@ -108,10 +113,16 @@ if __name__ == "__main__":
     parser.add_argument(
         "--fp16", type=bool, default=True, help="Enable FP16 precision if GPU available"
     )
+    parser.add_argument(
+        "--update_hf_repo",
+        type=bool,
+        default=False,
+        help="Update the HF Model Card repo with the FLEURS evaluation results",
+    )
 
     args = parser.parse_args()
 
-    evaluate_fleurs(
+    results = evaluate_fleurs(
         model_id=args.model_id,
         lang_code=args.lang_code,
         language=args.language,
@@ -119,3 +130,8 @@ if __name__ == "__main__":
         n_test_samples=args.n_test_samples,
         fp16=args.fp16,
     )
+
+    if args.update_hf_repo:
+        update_hf_model_card_with_fleurs_results(
+            args.model_id, language=args.language, ft_eval_results=results
+        )

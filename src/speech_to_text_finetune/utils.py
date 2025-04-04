@@ -78,8 +78,7 @@ def get_hf_username() -> str:
     return HfApi().whoami()["name"]
 
 
-def upload_custom_hf_model_card(
-    hf_repo_name: str,
+def create_model_card(
     model_id: str,
     dataset_id: str,
     language_id: str,
@@ -88,7 +87,7 @@ def upload_custom_hf_model_card(
     n_eval_samples: int,
     baseline_eval_results: Dict,
     ft_eval_results: Dict,
-) -> None:
+) -> ModelCard:
     """
     Create and upload a custom Model Card (https://huggingface.co/docs/hub/model-cards) to the Hugging Face repo
     of the finetuned model that highlights the evaluation results before and after finetuning.
@@ -138,5 +137,24 @@ This model was created from the Mozilla.ai Blueprint:
 - Loss: {round(ft_eval_results["eval_loss"], 3)}
 """
 
-    card = ModelCard(content)
-    card.push_to_hub(hf_repo_name)
+    return ModelCard(content)
+
+
+def update_hf_model_card_with_fleurs_results(
+    model_repo_id: str,
+    language: str,
+    ft_eval_results: Dict,
+) -> None:
+    """
+    Update the HF Model Card with the evaluation results from the FLEURS dataset.
+    """
+    model_card = ModelCard.load(model_repo_id)
+    model_card.content += f"""
+### Finetuned model (after finetuning) on the {language} FLEURS test set (total of {ft_eval_results["n_eval_samples"]} samples)
+- Word Error Rate (Normalized): {round(ft_eval_results["eval_wer"], 3)}
+- Word Error Rate (Orthographic): {round(ft_eval_results["eval_wer_ortho"], 3)}
+- Character Error Rate (Normalized): {round(ft_eval_results["eval_cer"], 3)}
+- Character Error Rate (Orthographic): {round(ft_eval_results["eval_cer_ortho"], 3)}
+- Loss: {round(ft_eval_results["eval_loss"], 3)}
+"""
+    model_card.push_to_hub(model_repo_id)
