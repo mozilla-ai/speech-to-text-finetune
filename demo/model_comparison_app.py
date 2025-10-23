@@ -1,14 +1,14 @@
 from typing import Tuple
 
 import gradio as gr
-from transcribe_app import model_ids, transcribe
+from transcribe_app import get_dropdown_model_ids, transcribe
 
 
 def model_select_block() -> Tuple[gr.Dropdown, gr.Textbox, gr.Textbox]:
     with gr.Row():
         with gr.Column():
             dropdown_model = gr.Dropdown(
-                choices=model_ids, label="Option 1: Select a model"
+                choices=get_dropdown_model_ids(), label="Option 1: Select a model"
             )
         with gr.Column():
             user_model = gr.Textbox(
