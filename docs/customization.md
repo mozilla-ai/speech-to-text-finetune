@@ -112,7 +112,7 @@ def load_my_dataset(my_dataset_dir: str = "/home/user/datasets/my_dataset", trai
 
 ### Step 3: Integrate with the rest of the codebase
 
-Once you've created your custom dataset loading function, you need to integrate it into the existing codebase. Specifically, you need to update the `load_dataset_from_dataset_id` function in [data_process.py](../src/speech_to_text_finetune/data_process.py) to include the new function. Simply add to the function:
+Once you've created your custom dataset loading function, you need to integrate it into the existing codebase. Specifically, you need to update the `load_dataset_from_dataset_id` function in `data_process.py` to include the new function. Simply add to the function:
 
 
 ```
