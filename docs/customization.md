@@ -58,7 +58,8 @@ datasets/
 ```
 and that the .csv file has the following format:
 
-```csv my_dataset/dataset.csv
+```
+csv my_dataset/dataset.csv
 audio,text
 example_1.mp3,"This is an example"
 example_2.mp3,"This is another example"
