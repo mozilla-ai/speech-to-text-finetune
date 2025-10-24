@@ -1,18 +1,21 @@
 import os
+from dataclasses import dataclass
 from pathlib import Path
-
-from huggingface_hub.errors import HFValidationError
-
-from speech_to_text_finetune.config import PROC_DATASET_DIR
+from typing import Dict, List, Tuple, Union
 
 import pandas as pd
 import torch
-from dataclasses import dataclass
-from typing import Dict, List, Union, Tuple
-
-from transformers import WhisperProcessor
-from datasets import load_dataset, DatasetDict, Audio, Dataset, load_from_disk
+from datacollective import DataCollective
+from datasets import Audio, Dataset, DatasetDict, load_dataset, load_from_disk
+from huggingface_hub.errors import HFValidationError
 from loguru import logger
+from transformers import WhisperProcessor
+
+from speech_to_text_finetune.config import PROC_DATASET_DIR
+
+
+def _get_mdc_client() -> DataCollective:
+    return DataCollective()
 
 
 def try_find_processed_version(
@@ -24,7 +27,9 @@ def try_find_processed_version(
     or
     2. The dataset_id is a path to a local dataset, but a processed version already exists locally.
     or
-    3. The dataset_id is a HuggingFace dataset ID, but a processed version already exists locally.
+    3. The dataset_id is an MDC dataset ID, but a processed version already exists locally.
+    or
+    4. The dataset_id is a HuggingFace dataset ID, but a processed version already exists locally.
     """
     if Path(dataset_id).name == PROC_DATASET_DIR and Path(dataset_id).is_dir():
         if (
@@ -40,6 +45,14 @@ def try_find_processed_version(
     if Path(proc_dataset_path).is_dir():
         return load_from_disk(proc_dataset_path)
 
+    mdc_proc_dataset_path = _get_mdc_proc_dataset_path(dataset_id)
+    if Path(mdc_proc_dataset_path).is_dir():
+        logger.info(
+            f"Found processed dataset version at {mdc_proc_dataset_path} of MDC dataset {dataset_id}. "
+            f"Loading it directly and skipping processing again the original version."
+        )
+        return load_from_disk(mdc_proc_dataset_path)
+
     hf_proc_dataset_path = _get_hf_proc_dataset_path(dataset_id, language_id)
     if Path(hf_proc_dataset_path).is_dir():
         logger.info(
@@ -51,28 +64,34 @@ def try_find_processed_version(
     return None
 
 
-def _get_hf_proc_dataset_path(dataset_id: str, language_id: str) -> str:
-    return (
+def _get_mdc_proc_dataset_path(dataset_id: str) -> Path:
+    return Path(f"./artifacts/{dataset_id.replace('/', '_')}/{PROC_DATASET_DIR}")
+
+
+def _get_hf_proc_dataset_path(dataset_id: str, language_id: str) -> Path:
+    return Path(
         f"./artifacts/{language_id}_{dataset_id.replace('/', '_')}/{PROC_DATASET_DIR}"
     )
 
 
-def _get_local_proc_dataset_path(dataset_id: str) -> str:
+def _get_local_proc_dataset_path(dataset_id: str) -> Path:
     return Path(dataset_id).resolve() / PROC_DATASET_DIR
 
 
 def load_dataset_from_dataset_id(
     dataset_id: str,
     language_id: str | None = None,
-) -> Tuple[DatasetDict, str]:
+) -> Tuple[DatasetDict, Path]:
     """
     This function loads a dataset, based on the dataset_id and the content of its directory (if it is a local path).
     Possible cases:
-    1. The dataset_id is a path to a local, Common Voice dataset directory.
+    1. The dataset_id is an MDC dataset id.
 
-    2. The dataset_id is a path to a local, custom dataset directory.
+    2. The dataset_id is a path to a local, Common Voice dataset directory.
 
-    3. The dataset_id is a HuggingFace dataset ID.
+    3. The dataset_id is a path to a local, custom dataset directory.
+
+    4. The dataset_id is a HuggingFace dataset ID.
 
     Args:
         dataset_id: Path to a processed dataset directory or local dataset directory or HuggingFace dataset ID.
@@ -85,6 +104,12 @@ def load_dataset_from_dataset_id(
     Raises:
         ValueError: If the dataset cannot be found locally or on HuggingFace
     """
+    try:
+        dataset = _load_mdc_common_voice(dataset_id)
+        return dataset, _get_mdc_proc_dataset_path(dataset_id)
+    except FileNotFoundError:
+        pass
+
     try:
         dataset = _load_local_common_voice(dataset_id)
         return dataset, _get_local_proc_dataset_path(dataset_id)
@@ -111,32 +136,43 @@ def load_dataset_from_dataset_id(
     )
 
 
-def _load_hf_common_voice(dataset_id: str, language_id: str) -> DatasetDict:
+def _load_mdc_common_voice(dataset_id: str) -> DatasetDict:
     """
     Load the default train+validation split used for finetuning and a test split used for evaluation.
+
     Args:
-        dataset_id: official Common Voice dataset id from the mozilla-foundation organisation from Hugging Face
-        language_id: a registered language identifier from Common Voice (most often in ISO-639 format)
+        dataset_id: official Common Voice dataset id from the Mozilla Data Collective
 
     Returns:
         DatasetDict: HF Dataset dictionary that consists of two distinct Datasets
     """
-    common_voice = DatasetDict()
+    mdc_client = _get_mdc_client()
+    # Download if not exists and uncompress dataset
+    dataset = mdc_client.load_dataset(dataset_id)
+    dataset_df = dataset.to_pandas()
+    data_dir = dataset.directory
 
-    common_voice["train"] = load_dataset(
-        dataset_id,
-        language_id,
-        split="train+validation",
-        trust_remote_code=True,
-    )
-    common_voice["test"] = load_dataset(
-        dataset_id,
-        language_id,
-        split="test",
-        trust_remote_code=True,
-    )
-    common_voice = common_voice.select_columns(["audio", "sentence"])
+    train_df = dataset_df[dataset_df["splits"] == "train"]
+    test_df = dataset_df[dataset_df["splits"] == "test"]
+    if test_df.empty:
+        test_df = dataset_df[dataset_df["splits"] == "dev"]
 
+    # TODO: add validation for cases SPS or SCS
+    # SPS: audio_file
+    # SCS: path
+    train_df = train_df.rename(columns={"audio_file": "audio"})
+    train_df["audio"] = train_df["audio"].apply(
+        # SPS: audios/
+        # SCS: clips/
+        lambda p: os.path.join(data_dir, "audio_file", p)
+    )
+    # TODO: Add preprocess test
+    common_voice = DatasetDict(
+        {
+            "train": Dataset.from_pandas(train_df),
+        }
+    )
+    # TODO: update to use MDC SDK
     return common_voice
 
 
@@ -162,7 +198,8 @@ def _load_local_common_voice(cv_data_dir: str) -> DatasetDict:
     )
 
     test_df = test_df.rename(columns={"path": "audio"})
-    test_df["audio"] = test_df["audio"].apply(lambda p: str(cv_data_dir / "clips" / p))
+    test_df["audio"] = test_df["audio"].apply(
+        lambda p: str(cv_data_dir / "clips" / p))
 
     return DatasetDict(
         {
@@ -214,6 +251,35 @@ def _load_custom_dataset(dataset_dir: str) -> DatasetDict:
     )
 
 
+def _load_hf_common_voice(dataset_id: str, language_id: str) -> DatasetDict:
+    """
+    Load the default train+validation split used for finetuning and a test split used for evaluation.
+    Args:
+        dataset_id: official Common Voice dataset id from the mozilla-foundation organisation from Hugging Face
+        language_id: a registered language identifier from Common Voice (most often in ISO-639 format)
+
+    Returns:
+        DatasetDict: HF Dataset dictionary that consists of two distinct Datasets
+    """
+    common_voice = DatasetDict()
+
+    common_voice["train"] = load_dataset(
+        dataset_id,
+        language_id,
+        split="train+validation",
+        trust_remote_code=True,
+    )
+    common_voice["test"] = load_dataset(
+        dataset_id,
+        language_id,
+        split="test",
+        trust_remote_code=True,
+    )
+    common_voice = common_voice.select_columns(["audio", "sentence"])
+
+    return common_voice
+
+
 def load_and_proc_hf_fleurs(
     language_id: str,
     n_test_samples: int,
@@ -246,7 +312,8 @@ def load_and_proc_hf_fleurs(
     )
     dataset = dataset.select_columns(["audio", "sentence"])
 
-    save_proc_dataset_path = _get_hf_proc_dataset_path(fleurs_dataset_id, language_id)
+    save_proc_dataset_path = _get_hf_proc_dataset_path(
+        fleurs_dataset_id, language_id)
     logger.info("Processing dataset...")
     dataset = process_dataset(
         dataset=dataset,
@@ -362,9 +429,11 @@ class DataCollatorSpeechSeq2SeqWithPadding:
         )
 
         # get the tokenized label sequences
-        label_features = [{"input_ids": feature["labels"]} for feature in features]
+        label_features = [{"input_ids": feature["labels"]}
+                          for feature in features]
         # pad the labels to max length
-        labels_batch = self.processor.tokenizer.pad(label_features, return_tensors="pt")
+        labels_batch = self.processor.tokenizer.pad(
+            label_features, return_tensors="pt")
 
         # replace padding with -100 to ignore loss correctly
         labels = labels_batch["input_ids"].masked_fill(

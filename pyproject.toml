@@ -17,6 +17,7 @@ dependencies = [
   "loguru",
   "tensorboard",
   "transformers",
+  "datacollective",
 ]
 
 [project.optional-dependencies]
