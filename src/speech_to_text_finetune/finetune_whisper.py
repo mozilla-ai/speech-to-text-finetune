@@ -1,3 +1,4 @@
+import argparse
 import json
 from functools import partial
 
@@ -19,7 +20,7 @@ from speech_to_text_finetune.data_process import (
     DataCollatorSpeechSeq2SeqWithPadding,
     load_dataset_from_dataset_id,
     try_find_processed_version,
-    process_dataset,
+    process_dataset_for_whisper as process_dataset,
     load_subset_of_dataset,
 )
 from speech_to_text_finetune.utils import (
@@ -187,4 +188,9 @@ def run_finetuning(
 
 
 if __name__ == "__main__":
-    run_finetuning(config_path="example_data/config.yaml")
+    argparser = argparse.ArgumentParser()
+    argparser.add_argument("--path_to_config", "-c", 
+                           default="example_data/config.yaml", 
+                           help="Path to the experiment config yaml file")
+    args = argparser.parse_args()
+    run_finetuning(config_path=args.path_to_config)
